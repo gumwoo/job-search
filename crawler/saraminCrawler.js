@@ -6,6 +6,18 @@ const cheerio = require('cheerio');
 const mongoose = require('mongoose');
 const Job = require('../models/Job');
 
+// axios-retry 설정
+axiosRetry(axios, {
+  retries: 3, // 최대 재시도 횟수
+  retryDelay: (retryCount) => {
+    return retryCount * 1000; // 재시도 간 딜레이 (밀리초)
+  },
+  retryCondition: (error) => {
+    // 재시도 조건 설정 (예: 네트워크 오류 또는 5xx 에러 시 재시도)
+    return axiosRetry.isNetworkError(error) || axiosRetry.isRetryableError(error);
+  },
+});
+
 // MongoDB 연결
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB Connected'))

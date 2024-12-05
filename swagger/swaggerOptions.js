@@ -14,11 +14,10 @@ const swaggerDefinition = {
       url: 'http://localhost:3000',
       description: '개발 서버',
     },
-    // 배포 시 실제 서버 주소를 추가합니다.
-    // {
-    //   url: 'https://your-deployed-server.com',
-    //   description: '배포 서버',
-    // },
+    {
+      url: 'http://113.198.66.75:17063',
+      description: '배포 서버',
+    },
   ],
   components: {
     securitySchemes: {
