@@ -20,7 +20,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *         name: page
  *         schema:
  *           type: integer
- *         description: 페이지 번호 (기본값: 1)
+ *         description: "페이지 번호 (기본값: 1)"
  *       - in: query
  *         name: keyword
  *         schema:
