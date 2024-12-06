@@ -52,6 +52,33 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 
 ---
 
+## 설치된 주요 패키지
+
+### 1. **Dependencies**
+- `axios`: HTTP 요청 처리
+- `axios-retry`: 요청 실패 시 재시도 로직 추가
+- `bcryptjs`: 비밀번호 암호화
+- `cheerio`: HTML 파싱 및 크롤링
+- `cors`: CORS 설정
+- `dotenv`: 환경 변수 관리
+- `express`: 웹 프레임워크
+- `express-rate-limit`: 요청 속도 제한
+- `express-status-monitor`: 서버 상태 모니터링
+- `express-validator`: 요청 데이터 검증
+- `helmet`: 보안 설정
+- `jsonwebtoken`: JWT 인증
+- `mongoose`: MongoDB와 연동
+- `morgan`: HTTP 요청 로깅
+- `swagger-jsdoc`: Swagger 문서 생성
+- `swagger-ui-express`: Swagger UI 제공
+- `winston`: 로깅 라이브러리
+
+### 2. **DevDependencies**
+- `eslint`: 코드 스타일 검사 도구
+- `nodemon`: 서버 코드 변경 시 자동 재시작
+
+---
+
 ## JCloud 환경 정보
 
 - **서버 내부 포트**: `443`
@@ -65,4 +92,20 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 ---
 
 ## 프로젝트 구조
+
+```plaintext
+JOB-SEARCH
+├── app.js               # Express 서버 시작점
+├── Dockerfile           # Docker 설정 파일
+├── swagger.json         # Swagger 문서화 파일
+├── package.json         # 프로젝트 종속성 파일
+├── .gitignore           # Git 예외 설정
+├── .env                 # 환경 변수 파일
+├── models/              # Mongoose 스키마 정의 (User, Job, Company 등)
+├── controllers/         # 각 엔드포인트 로직 처리
+├── routes/              # 라우팅 설정 (auth, jobs, applications 등)
+├── middlewares/         # 인증, 에러 핸들러, validation 등 공통 로직
+├── utils/               # 토큰 발급, 에러 클래스, 로거 등 유틸 함수
+├── swagger/             # Swagger 설정 파일
+└── crawler/             # Saramin 크롤링 스크립트 (예: saraminCrawler.js)
 
