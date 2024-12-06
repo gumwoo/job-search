@@ -4,7 +4,10 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const morgan = require('morgan');
+const logger = require('./utils/logger');
 const helmet = require('helmet');
+const expressStatusMonitor = require('express-status-monitor');
 const app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./swagger/swaggerOptions');
@@ -35,6 +38,8 @@ app.use('/notifications', notificationRoutes);
 app.use(cors());
 app.use(express.json());
 app.use(helmet());
+app.use(expressStatusMonitor());
+app.use(expressStatusMonitor({ path: '/status' }));
 app.use('/messages', messageRoutes);
 app.use(limiter);
 app.use('/resumes', resumeRoutes);
@@ -45,7 +50,12 @@ app.use('/auth', authRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/bookmarks', bookmarkRoutes);
-
+// morgan과 winston을 연동하여 요청 로깅
+app.use(morgan('combined', {
+  stream: {
+    write: (message) => logger.http(message.trim()),
+  },
+}));
 // 에러 처리 미들웨어
 app.use(errorMiddleware);
 

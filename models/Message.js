@@ -39,7 +39,6 @@ const messageSchema = new mongoose.Schema({
   content: { type: String, required: true },
   isRead: { type: Boolean, default: false },
   sentAt: { type: Date, default: Date.now },
-  // 추가 필드...
 });
 
 module.exports = mongoose.model('Message', messageSchema);

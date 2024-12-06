@@ -1,6 +1,7 @@
 // middlewares/validationMiddleware.js
 
 const { validationResult } = require('express-validator');
+const ValidationError = require('../utils/validationError');
 
 exports.validate = (validations) => {
   return async (req, res, next) => {
@@ -14,9 +15,7 @@ exports.validate = (validations) => {
       return next();
     }
 
-    res.status(400).json({
-      status: 'error',
-      errors: errors.array(),
-    });
+    // 에러를 커스텀 에러 클래스로 전달
+    return next(new ValidationError(errors.array()));
   };
 };

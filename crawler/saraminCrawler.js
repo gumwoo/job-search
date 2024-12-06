@@ -1,5 +1,9 @@
 // crawler/saraminCrawler.js
-
+// 기술 스택 추출 알고리즘:
+// 1. job_sector 내의 a 태그 목록을 순회
+// 2. 각 a 태그의 텍스트를 trim하여 skills 배열에 삽입
+// 3. 결과적으로 skills 배열에는 해당 공고에서 요구하는 모든 기술 스택이 문자열 형태로 저장됨
+// 이 알고리즘은 단순한 DOM 탐색이며, 공고별 기술 스택이 a 태그로 감싸여 있다는 구조적 전제에 의존함
 require('dotenv').config({ path: 'C:/Users/USER/Downloads/WSD-Assignment-03/.env' });
 const axios = require('axios');
 const cheerio = require('cheerio');

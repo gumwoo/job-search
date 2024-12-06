@@ -44,9 +44,9 @@ const swaggerDefinition = {
             items: {
               type: 'object',
               properties: {
-                msg: { type: 'string' },
-                param: { type: 'string' },
-                location: { type: 'string' },
+                msg: { type: 'string', example: '세부 에러 메시지' },
+                param: { type: 'string', example: '필드명' },
+                location: { type: 'string', example: '위치' },
               },
             },
           },

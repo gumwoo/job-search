@@ -39,7 +39,6 @@ const resumeSchema = new mongoose.Schema({
   content: { type: String, required: true }, // 이력서 내용 (HTML 또는 마크다운)
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  // 추가 필드: 학력, 경력, 기술 스택 등
 });
 
 module.exports = mongoose.model('Resume', resumeSchema);

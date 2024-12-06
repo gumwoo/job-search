@@ -64,8 +64,6 @@ exports.getJobById = async (req, res, next) => {
       throw new CustomError(404, '채용 공고를 찾을 수 없습니다.');
     }
 
-    // 조회수 증가 로직 (필요한 경우)
-
     res.json({ status: 'success', data: job });
   } catch (err) {
     next(err);
@@ -75,7 +73,7 @@ exports.getJobById = async (req, res, next) => {
 // 채용 공고 등록
 exports.createJob = async (req, res, next) => {
   try {
-    // 관리자 또는 기업 사용자만 가능하도록 권한 체크 필요
+    // 관리자 또는 기업 사용자만 가능하도록 권한 체크 필요 (추가 가능)
     const job = new Job(req.body);
     await job.save();
 

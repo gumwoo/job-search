@@ -63,8 +63,7 @@ const jobSchema = new mongoose.Schema({
   deadline: String,
   sector: String,
   salary: String,
-  skills: String,
-  // 필요한 추가 필드들을 여기에 정의하세요.
+  skills: [String],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Job', jobSchema);

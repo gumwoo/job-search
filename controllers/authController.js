@@ -1,5 +1,9 @@
 // controllers/authController.js
-
+  /* 비밀번호 검증 비즈니스 로직:
+사용자의 입력 비밀번호와 DB에 저장된 해시 비밀번호를 비교하여 일치하면 인증 성공
+이 로직을 통해 비밀번호 오류 시 "비밀번호가 일치하지 않습니다." 에러 반환
+이 규칙은 모든 로그인 시나리오에 적용되며, 비밀번호 변경 시에도 동일한 검증 방식 사용*/
+// controllers/authController.js
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const CustomError = require('../utils/customError');
@@ -27,50 +31,50 @@ exports.register = async (req, res, next) => {
 
 // 로그인
 exports.login = async (req, res, next) => {
-    try {
-      const { email, password } = req.body;
-  
-      // 사용자 확인
-      const user = await User.findOne({ email });
-      if (!user) {
-        throw new CustomError(400, '존재하지 않는 이메일입니다.');
-      }
-  
-      // 비밀번호 검증
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-        throw new CustomError(400, '비밀번호가 일치하지 않습니다.');
-        }
-  
-      // 토큰 생성
-      const accessToken = generateAccessToken(user._id);
-      const refreshToken = generateRefreshToken(user._id);
-  
-      // Refresh Token 저장
-      user.refreshToken = refreshToken;
-      await user.save();
-  
-      res.json({
-        status: 'success',
-        accessToken,
-        refreshToken,
-      });
-    } catch (err) {
-      next(err);
+  try {
+    const { email, password } = req.body;
+
+    // 사용자 확인
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new CustomError(400, '존재하지 않는 이메일입니다.');
     }
-  };
+
+    // 비밀번호 검증 (Base64로 인코딩된 비밀번호 비교)
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      throw new CustomError(400, '비밀번호가 일치하지 않습니다.');
+    }
+
+    // 토큰 생성
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Refresh Token 저장
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.json({
+      status: 'success',
+      accessToken,
+      refreshToken,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
 // 로그아웃
 exports.logout = async (req, res, next) => {
-    try {
-      req.user.refreshToken = null;
-      await req.user.save();
-  
-      res.json({ status: 'success', message: '로그아웃 되었습니다.' });
-    } catch (err) {
-      next(err);
-    }
-  };
+  try {
+    req.user.refreshToken = null;
+    await req.user.save();
+
+    res.json({ status: 'success', message: '로그아웃 되었습니다.' });
+  } catch (err) {
+    next(err);
+  }
+};
 
 // 회원 정보 수정
 exports.updateProfile = async (req, res, next) => {
@@ -100,30 +104,33 @@ exports.deleteAccount = async (req, res, next) => {
 
 // 토큰 갱신
 exports.refreshToken = async (req, res, next) => {
-    try {
-      const { refreshToken } = req.body;
-  
-      if (!refreshToken) {
-        throw new CustomError(400, 'Refresh Token이 없습니다.');
-      }
-  
-      // Refresh Token 검증
-      const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-  
-      // 사용자 확인
-      const user = await User.findById(decoded.userId);
-      if (!user || user.refreshToken !== refreshToken) {
-        throw new CustomError(401, '유효하지 않은 Refresh Token입니다.');
-      }
-  
-      // 새로운 Access Token 발급
-      const newAccessToken = generateAccessToken(user._id);
-  
-      res.json({
-        status: 'success',
-        accessToken: newAccessToken,
-      });
-    } catch (err) {
-      next(err);
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      throw new CustomError(400, 'Refresh Token이 없습니다.');
     }
-  };
+
+    // Refresh Token 검증
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+
+    // 사용자 확인
+    const user = await User.findById(decoded.userId);
+    if (!user || user.refreshToken !== refreshToken) {
+      throw new CustomError(401, '유효하지 않은 Refresh Token입니다.');
+    }
+
+    // 새로운 Access Token 발급
+    const newAccessToken = generateAccessToken(user._id);
+
+    res.json({
+      status: 'success',
+      accessToken: newAccessToken,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+

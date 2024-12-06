@@ -7,7 +7,6 @@ const applicationSchema = new mongoose.Schema({
   job: { type: mongoose.Schema.Types.ObjectId, ref: 'Job', required: true },
   status: { type: String, default: 'applied' },
   appliedAt: { type: Date, default: Date.now },
-  // 추가 필드들...
 });
 
 module.exports = mongoose.model('Application', applicationSchema);

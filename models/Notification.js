@@ -39,7 +39,6 @@ const notificationSchema = new mongoose.Schema({
   message: { type: String, required: true },
   isRead: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
-  // 추가 필드...
 });
 
 module.exports = mongoose.model('Notification', notificationSchema);
