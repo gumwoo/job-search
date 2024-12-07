@@ -18,7 +18,7 @@
  *           description: 알림을 받는 사용자 ID
  *         type:
  *           type: string
- *           description: 알림 유형 (예: application_status, new_job)
+ *           description: "알림 유형 (예: application_status, new_job)"
  *         message:
  *           type: string
  *           description: 알림 메시지 내용

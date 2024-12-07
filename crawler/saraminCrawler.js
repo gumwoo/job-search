@@ -4,12 +4,12 @@
 // 2. 각 a 태그의 텍스트를 trim하여 skills 배열에 삽입
 // 3. 결과적으로 skills 배열에는 해당 공고에서 요구하는 모든 기술 스택이 문자열 형태로 저장됨
 // 이 알고리즘은 단순한 DOM 탐색이며, 공고별 기술 스택이 a 태그로 감싸여 있다는 구조적 전제에 의존함
-require('dotenv').config({ path: 'C:/Users/USER/Downloads/WSD-Assignment-03/.env' });
+require('dotenv').config({});
 const axios = require('axios');
 const cheerio = require('cheerio');
 const mongoose = require('mongoose');
 const Job = require('../models/Job');
-
+const axiosRetry = require('axios-retry').default; // 정확한 경로 확인
 // axios-retry 설정
 axiosRetry(axios, {
   retries: 3, // 최대 재시도 횟수
@@ -111,5 +111,5 @@ async function crawlSaramin(keyword, pages = 1) {
 
 // 사용 예시
 (async () => {
-  await crawlSaramin('개발자', 5); // '개발자' 키워드로 5페이지 크롤링
+  await crawlSaramin('개발자', 7); // '개발자' 키워드로 7페이지 크롤링
 })();

@@ -19,7 +19,8 @@ const tokenUtils = {
    * @returns {string} 액세스 토큰
    */
   generateAccessToken(userId) {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN });
+    const expiresIn = '1h';  // Hard-coding for testing
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn });
   },
 
   /**
@@ -28,7 +29,8 @@ const tokenUtils = {
    * @returns {string} 리프레시 토큰
    */
   generateRefreshToken(userId) {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN });
+    const expiresIn = '7d';  // Hard-coding for testing
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn });
   },
 };
 
