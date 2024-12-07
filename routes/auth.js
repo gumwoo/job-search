@@ -177,7 +177,7 @@ router.post('/login',
 router.put('/profile', authMiddleware, authController.updateProfile);
 
 // 회원 탈퇴
-router.delete('/profile', authMiddleware, authController.deleteAccount);
+router.delete('/account', authMiddleware, authController.deleteAccount);
 /**
  * @swagger
  * /auth/refresh:
