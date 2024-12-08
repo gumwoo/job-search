@@ -175,6 +175,54 @@ router.post('/login',
 
 // 회원 정보 수정
 router.put('/profile', authMiddleware, authController.updateProfile);
+/**
+ * @swagger
+ * /auth/profile:
+ *   get:
+ *     summary: 회원 정보 조회
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 회원 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                     updatedAt:
+ *                       type: string
+ *       401:
+ *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: 서버 오류
+ */
+// 회원 정보 조회
+router.get('/profile', authMiddleware, authController.getProfile);
 
 // 회원 탈퇴
 router.delete('/account', authMiddleware, authController.deleteAccount);

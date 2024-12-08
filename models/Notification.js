@@ -34,11 +34,25 @@
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, required: true }, // 예: 'application_status', 'new_job', etc.
-  message: { type: String, required: true },
-  isRead: { type: Boolean, default: false },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  type: { // 예: 'application', 'bookmark', 'message', etc.
+    type: String,
+    required: true
+  },
+  content: { type: String, required: true },
+  read: { type: Boolean, default: false }, // 'read' 필드 사용
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+// 조회 시 `updatedAt` 업데이트
+notificationSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

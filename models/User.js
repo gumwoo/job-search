@@ -36,6 +36,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: String,
   refreshToken: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
 // 비밀번호를 Base64로 암호화
@@ -53,5 +55,11 @@ userSchema.methods.comparePassword = function(candidatePassword) {
   const encodedCandidate = Buffer.from(candidatePassword, 'utf8').toString('base64');
   return this.password === encodedCandidate;
 };
+
+// 조회 시 `updatedAt` 업데이트
+userSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
 
 module.exports = mongoose.model('User', userSchema);

@@ -1,21 +1,28 @@
 // middlewares/validationMiddleware.js
 
 const { validationResult } = require('express-validator');
-const ValidationError = require('../utils/validationError');
+const CustomError = require('../utils/customError');
 
-exports.validate = (validations) => {
+const validate = (validations) => {
   return async (req, res, next) => {
-    for (let validation of validations) {
-      await validation.run(req);
-    }
+    // 모든 유효성 검사를 실행
+    await Promise.all(validations.map(validation => validation.run(req)));
 
+    // 검증 결과를 가져옴
     const errors = validationResult(req);
-
     if (errors.isEmpty()) {
       return next();
     }
 
-    // 에러를 커스텀 에러 클래스로 전달
-    return next(new ValidationError(errors.array()));
+    // 오류를 추출하여 커스텀 에러 생성
+    const extractedErrors = errors.array().map(err => ({
+      msg: err.msg,
+      param: err.param,
+      location: err.location
+    }));
+
+    return next(new CustomError(400, '입력 데이터 검증 오류', 'VALIDATION_ERROR', extractedErrors));
   };
 };
+
+module.exports = { validate };

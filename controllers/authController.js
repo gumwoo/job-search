@@ -76,6 +76,16 @@ exports.logout = async (req, res, next) => {
   }
 };
 
+// 회원 정보 조회
+exports.getProfile = async (req, res, next) => {
+  try {
+    const user = req.user; // authMiddleware에서 설정
+    res.json({ status: "success", data: user });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // 회원 정보 수정
 exports.updateProfile = async (req, res, next) => {
   try {

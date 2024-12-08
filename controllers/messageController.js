@@ -17,7 +17,7 @@ exports.sendMessage = async (req, res, next) => {
 
     const message = new Message({
       sender: req.user._id,
-      receiver: receiverId,
+      receiver: receiverId, // 일관성 있게 'receiver' 사용
       content,
     });
 
@@ -32,17 +32,65 @@ exports.sendMessage = async (req, res, next) => {
 // 메시지 목록 조회
 exports.getMessages = async (req, res, next) => {
   try {
-    const { conversationWith } = req.query;
+    const { conversationWith, page = 1 } = req.query;
+    const limit = 20;
+    const skip = (page - 1) * limit;
 
-    const messages = await Message.find({
+    if (!conversationWith) {
+      throw new CustomError(400, '대화 상대방 ID가 필요합니다.');
+    }
+
+    // 대화 상대방 존재 여부 확인
+    const conversationUser = await User.findById(conversationWith);
+    if (!conversationUser) {
+      throw new CustomError(404, '대화 상대방을 찾을 수 없습니다.');
+    }
+
+    const query = {
       $or: [
         { sender: req.user._id, receiver: conversationWith },
         { sender: conversationWith, receiver: req.user._id },
       ],
-    })
-      .sort({ sentAt: 1 }); // 메시지 보낸 시간순 정렬
+    };
 
-    res.json({ status: 'success', data: messages });
+    const totalItems = await Message.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / limit);
+    const currentPage = parseInt(page, 10);
+
+    const messages = await Message.find(query)
+      .sort({ sentAt: 1 }) // 메시지 보낸 시간순 정렬
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      status: 'success',
+      data: messages,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalItems,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 메시지 읽음 처리
+exports.markAsRead = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const message = await Message.findOneAndUpdate(
+      { _id: id, receiver: req.user._id }, // 'receiver'로 수정
+      { read: true },
+      { new: true }
+    );
+
+    if (!message) {
+      throw new CustomError(404, '메시지를 찾을 수 없습니다.');
+    }
+
+    res.json({ status: 'success', data: message });
   } catch (err) {
     next(err);
   }

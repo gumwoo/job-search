@@ -64,6 +64,15 @@ const jobSchema = new mongoose.Schema({
   sector: String,
   salary: String,
   skills: [String],
+  views: { type: Number, default: 0 }, // 조회수 필드 추가
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
+
+// 조회 시 `updatedAt` 업데이트
+jobSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
 
 module.exports = mongoose.model('Job', jobSchema);
