@@ -86,7 +86,7 @@ router.post('/',
  *         schema:
  *           type: integer
  *           example: 1
- *         description: 페이지 번호 (기본값: 1)
+ *         description: "페이지 번호 (기본값: 1)"
  *     responses:
  *       200:
  *         description: 지원 내역 조회 성공

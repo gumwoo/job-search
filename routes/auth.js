@@ -281,7 +281,7 @@ router.delete('/account', authMiddleware, authController.deleteAccount);
  *                   example: success
  *                 accessToken:
  *                   type: string
- *                   description: 새로운 액세스 토큰 (JWT)
+ *                   description: "새로운 액세스 토큰 (JWT)"
  *       400:
  *         description: Refresh Token이 없습니다.
  *         content:

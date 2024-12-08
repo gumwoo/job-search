@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 const resumeController = require('../controllers/resumeController');
 const authMiddleware = require('../middlewares/authMiddleware');
-const { body, param } = require('express-validator');
+const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 const multer = require('multer');
 const path = require('path');
@@ -104,7 +104,7 @@ router.post('/',
  *         schema:
  *           type: integer
  *           example: 1
- *         description: 페이지 번호 (기본값: 1)
+ *         description: "페이지 번호 (기본값: 1)"
  *     responses:
  *       200:
  *         description: 이력서 목록 조회 성공

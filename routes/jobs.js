@@ -5,7 +5,7 @@ const router = express.Router();
 const jobController = require('../controllers/jobController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const adminMiddleware = require('../middlewares/adminMiddleware'); // 관리자 권한 미들웨어 추가
-const { body } = require('express-validator');
+const { param, body,query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 
 /**

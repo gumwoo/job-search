@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 const notificationController = require('../controllers/notificationController');
 const authMiddleware = require('../middlewares/authMiddleware');
-const { param } = require('express-validator');
+const { param,query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 
 /**
@@ -28,7 +28,7 @@ const { validate } = require('../middlewares/validationMiddleware');
  *         schema:
  *           type: integer
  *           example: 1
- *         description: 페이지 번호 (기본값: 1)
+ *         description: "페이지 번호 (기본값: 1)"
  *     responses:
  *       200:
  *         description: 알림 목록 조회 성공
