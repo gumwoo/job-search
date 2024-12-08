@@ -39,9 +39,12 @@ app.use(express.json());
 app.use(
   helmet({
     hsts: false, // HSTS 헤더 비활성화
-    contentSecurityPolicy: false, // 필요한 경우 CSP 비활성화
+    contentSecurityPolicy: false, // CSP 비활성화
+    crossOriginOpenerPolicy: false, // Cross-Origin-Opener-Policy 헤더 비활성화
+    crossOriginEmbedderPolicy: false, // Cross-Origin-Embedder-Policy 헤더 비활성화
   })
 );
+
 app.use(expressStatusMonitor());
 app.use(limiter);
 app.use('/resumes', resumeRoutes);
