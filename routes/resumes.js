@@ -25,12 +25,6 @@ const upload = multer({ storage: storage });
  *   name: Resumes
  *   description: 이력서 CRUD API
  */
-/**
- * @swagger
- * tags:
- *   name: Resumes
- *   description: 이력서 CRUD API
- */
 
 /**
  * @swagger
