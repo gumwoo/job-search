@@ -4,6 +4,15 @@ const { body, param, query } = require('express-validator');
 const authMiddleware = require('../middlewares/authMiddleware');
 const bookmarkController = require('../controllers/bookmarkController');
 const { validate } = require('../middlewares/validationMiddleware');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Bookmarks
+ *   description: 북마크 관련 API
+ */
+
+
 /**
  * @swagger
  * /bookmarks:
@@ -49,7 +58,7 @@ const { validate } = require('../middlewares/validationMiddleware');
  * @swagger
  * /bookmarks:
  *   get:
- *     summary: 북마크 목록 조회
+ *     summary: 관심 공고 목록 조회
  *     tags: [Bookmarks]
  *     security:
  *       - BearerAuth: []
@@ -69,7 +78,7 @@ const { validate } = require('../middlewares/validationMiddleware');
  *         name: experience
  *         schema:
  *           type: string
- *         description: ��력 필터링
+ *         description: 경력 필터링
  *       - in: query
  *         name: salary
  *         schema:
@@ -98,7 +107,7 @@ router.get('/',
     authMiddleware,
     validate([
       // 추가적인 쿼리 파라미터 검증 가능
-      body('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
+      query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
       body('location').optional().isString(),
       body('experience').optional().isString(),
       body('salary').optional().isString(),

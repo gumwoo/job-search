@@ -93,8 +93,14 @@ const { validate } = require('../middlewares/validationMiddleware');
  */
 
 // 공고 목록 조회
-router.get('/', jobController.getJobs);
-
+router.get('/',
+  validate([
+    query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
+    query('sortBy').optional().isIn(['createdAt', 'views']).withMessage('유효한 정렬 기준을 선택하세요.'),
+    query('order').optional().isIn(['asc', 'desc']).withMessage('유효한 정렬 순서를 선택하세요.'),
+  ]),
+  jobController.getJobs
+);
 /**
  * @swagger
  * /jobs:
@@ -120,40 +126,53 @@ router.get('/', jobController.getJobs);
  *               - sector
  *               - salary
  *               - skills
+ *               - link
  *             properties:
  *               companyId:
  *                 type: string
  *                 description: 회사 ID (참조)
+ *                 example: 60d0fe4f5311236168a109cc
  *               title:
  *                 type: string
  *                 description: 채용 공고 제목
+ *                 example: 백엔드 개발자
  *               location:
  *                 type: string
  *                 description: 지역
+ *                 example: 서울
  *               experience:
  *                 type: string
  *                 description: 경력
+ *                 example: 3년 이상
  *               education:
  *                 type: string
  *                 description: 학력
+ *                 example: 학사
  *               employmentType:
  *                 type: string
  *                 description: 고용 형태
+ *                 example: 정규직
  *               deadline:
  *                 type: string
- *                 format: date
  *                 description: 마감일
+ *                 example: 2024-12-31
  *               sector:
  *                 type: string
  *                 description: 직무 분야
+ *                 example: 소프트웨어 개발
  *               salary:
  *                 type: string
  *                 description: 연봉 정보
+ *                 example: 연봉 5000만원 이상
  *               skills:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: 기술 스택
+ *                   example: Node.js
+ *               link:
+ *                 type: string
+ *                 description: 채용 공고 링크
+ *                 example: https://www.saramin.co.kr/job/123456
  *     responses:
  *       201:
  *         description: 채용 공고 등록 성공
@@ -168,7 +187,13 @@ router.get('/', jobController.getJobs);
  *                 data:
  *                   $ref: '#/components/schemas/Job'
  *       400:
- *         description: 입력 데이터 오류
+ *         description: 입력 데이터 오류 또는 중복 공고
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: 인증 실패
  */
 
 // 채용 공고 등록 (관리자 권한 필요)
@@ -186,6 +211,7 @@ router.post('/',
     body('sector').notEmpty().withMessage('직무 분야를 입력하세요.'),
     body('salary').notEmpty().withMessage('연봉 정보를 입력하세요.'),
     body('skills').isArray().withMessage('기술 스택은 배열 형태로 입력하세요.'),
+    body('link').isURL().withMessage('유효한 채용 공고 링크를 입력하세요.'),
   ]),
   jobController.createJob
 );
@@ -205,6 +231,7 @@ router.post('/',
  *         description: 채용 공고 ID
  *         schema:
  *           type: string
+ *           example: 60d0fe4f5311236168a109cb
  *     requestBody:
  *       required: true
  *       content:
@@ -212,36 +239,51 @@ router.post('/',
  *           schema:
  *             type: object
  *             properties:
+ *               companyId:
+ *                 type: string
+ *                 description: 회사 ID (참조)
+ *                 example: 60d0fe4f5311236168a109cc
  *               title:
  *                 type: string
  *                 description: 채용 공고 제목
+ *                 example: 백엔드 개발자
  *               location:
  *                 type: string
  *                 description: 지역
+ *                 example: 서울
  *               experience:
  *                 type: string
  *                 description: 경력
+ *                 example: 3년 이상
  *               education:
  *                 type: string
  *                 description: 학력
+ *                 example: 학사
  *               employmentType:
  *                 type: string
  *                 description: 고용 형태
+ *                 example: 정규직
  *               deadline:
  *                 type: string
- *                 format: date
  *                 description: 마감일
+ *                 example: 2024-12-31
  *               sector:
  *                 type: string
  *                 description: 직무 분야
+ *                 example: 소프트웨어 개발
  *               salary:
  *                 type: string
  *                 description: 연봉 정보
+ *                 example: 연봉 5000만원 이상
  *               skills:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: 기술 스택
+ *                   example: Node.js
+ *               link:
+ *                 type: string
+ *                 description: 채용 공고 링크
+ *                 example: https://www.saramin.co.kr/job/123456
  *     responses:
  *       200:
  *         description: 채용 공고 수정 성공
@@ -252,12 +294,17 @@ router.post('/',
  *               properties:
  *                 status:
  *                   type: string
+ *                   example: success
  *                 data:
  *                   $ref: '#/components/schemas/Job'
  *       400:
- *         description: 입력 데이터 오류
+ *         description: 입력 데이터 오류 또는 중복 링크
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
- *         description: 인증 오류
+ *         description: 인증 실패
  *       404:
  *         description: 채용 공고를 찾을 수 없음
  */
@@ -267,6 +314,7 @@ router.put('/:id',
   authMiddleware,
   adminMiddleware, // 관리자 권한 확인
   validate([
+    body('companyId').optional().isMongoId().withMessage('유효한 회사 ID를 입력하세요.'),
     body('title').optional().notEmpty().withMessage('채용 공고 제목을 입력하세요.'),
     body('location').optional().notEmpty().withMessage('지역을 입력하세요.'),
     body('experience').optional().notEmpty().withMessage('경력을 입력하세요.'),
@@ -276,6 +324,7 @@ router.put('/:id',
     body('sector').optional().notEmpty().withMessage('직무 분야를 입력하세요.'),
     body('salary').optional().notEmpty().withMessage('연봉 정보를 입력하세요.'),
     body('skills').optional().isArray().withMessage('기술 스택은 배열 형태로 입력하세요.'),
+    body('link').optional().isURL().withMessage('유효한 채용 공고 링크를 입력하세요.'),
   ]),
   jobController.updateJob
 );
@@ -295,21 +344,34 @@ router.put('/:id',
  *         description: 채용 공고 ID
  *         schema:
  *           type: string
+ *           example: 60d0fe4f5311236168a109cb
  *     responses:
  *       200:
  *         description: 채용 공고 삭제 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: 채용 공고가 삭제되었습니다.
  *       401:
- *         description: 인증 오류
+ *         description: 인증 실패
  *       404:
  *         description: 채용 공고를 찾을 수 없음
  *       500:
  *         description: 서버 오류
  */
-
-// 채용 공고 삭제 (관리자 권한 필요)
 router.delete('/:id',
   authMiddleware,
   adminMiddleware, // 관리자 권한 확인
+  validate([
+    param('id').isMongoId().withMessage('유효한 채용 공고 ID를 입력하세요.')
+  ]),
   jobController.deleteJob
 );
 
@@ -348,6 +410,9 @@ router.delete('/:id',
  */
 
 // 기술 스택별 채용 공고 수 집계
-router.get('/aggregate/skills', authMiddleware, jobController.aggregateSkills);
+router.get('/aggregate/skills',
+  authMiddleware,
+  jobController.aggregateSkills
+);
 
 module.exports = router;

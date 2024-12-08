@@ -1,7 +1,41 @@
 // models/Application.js
 
 const mongoose = require('mongoose');
-
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Application:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109cd
+ *         user:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109ca
+ *         job:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109cb
+ *         resume:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109ce
+ *         status:
+ *           type: string
+ *           example: Pending
+ *         appliedAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2023-10-01T12:34:56.789Z
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2023-10-01T12:34:56.789Z
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2023-10-01T12:34:56.789Z
+ */
 const applicationSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,

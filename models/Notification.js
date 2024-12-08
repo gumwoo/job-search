@@ -1,38 +1,37 @@
 // models/Notification.js
+
+const mongoose = require('mongoose');
 /**
  * @swagger
  * components:
  *   schemas:
  *     Notification:
  *       type: object
- *       required:
- *         - user
- *         - type
- *         - message
  *       properties:
  *         _id:
  *           type: string
- *           description: 알림 ID
+ *           example: 60d0fe4f5311236168a109d1
  *         user:
  *           type: string
- *           description: 알림을 받는 사용자 ID
+ *           example: 60d0fe4f5311236168a109ca
  *         type:
  *           type: string
- *           description: "알림 유형 (예: application_status, new_job)"
- *         message:
+ *           example: application
+ *         content:
  *           type: string
- *           description: 알림 메시지 내용
- *         isRead:
+ *           example: 새로운 지원이 접수되었습니다.
+ *         read:
  *           type: boolean
- *           description: 알림 읽음 여부
- *           default: false
+ *           example: false
  *         createdAt:
  *           type: string
  *           format: date-time
- *           description: 알림 생성 시각
+ *           example: 2023-10-01T12:34:56.789Z
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2023-10-01T12:34:56.789Z
  */
-const mongoose = require('mongoose');
-
 const notificationSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -56,4 +55,5 @@ notificationSchema.pre('save', function(next) {
 });
 // 복합 인덱스 설정
 notificationSchema.index({ user: 1, read: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Notification', notificationSchema);

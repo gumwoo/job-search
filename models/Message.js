@@ -5,31 +5,30 @@
  *   schemas:
  *     Message:
  *       type: object
- *       required:
- *         - sender
- *         - receiver
- *         - content
  *       properties:
  *         _id:
  *           type: string
- *           description: 메시지 ID
+ *           example: 60d0fe4f5311236168a109d0
  *         sender:
  *           type: string
- *           description: 발신자 ID
+ *           example: 60d0fe4f5311236168a109ca
  *         receiver:
  *           type: string
- *           description: 수신자 ID
+ *           example: 60d0fe4f5311236168a109cb
  *         content:
  *           type: string
- *           description: 메시지 내용
- *         isRead:
+ *           example: 안녕하세요!
+ *         read:
  *           type: boolean
- *           description: 메시지 읽음 여부
- *           default: false
+ *           example: false
  *         sentAt:
  *           type: string
  *           format: date-time
- *           description: 메시지 보낸 시각
+ *           example: 2023-10-01T12:34:56.789Z
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           example: 2023-10-01T12:34:56.789Z
  */
 const mongoose = require('mongoose');
 
@@ -56,5 +55,6 @@ messageSchema.pre('save', function(next) {
   next();
 });
 // 복합 인덱스 설정
-messageSchema.index({ sender: 1, receiver: 1 });
+messageSchema.index({ sender: 1, receiver: 1, sentAt: -1 });
+
 module.exports = mongoose.model('Message', messageSchema);

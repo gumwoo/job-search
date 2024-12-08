@@ -1,18 +1,19 @@
 // routes/auth.js
 
-/**
- * @swagger
- * tags:
- *   name: Auth
- *   description: 회원 관리 API
- */
-
 const { body } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
+
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: 사용자 인증 관련 API
+ */
+
 /**
  * @swagger
  * /auth/register:
@@ -32,13 +33,16 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *             properties:
  *               email:
  *                 type: string
- *                 description: 이메일 주소
+ *                 description: 사용자 이메일
+ *                 example: user@example.com
  *               password:
  *                 type: string
- *                 description: 비밀번호 (6자 이상)
+ *                 description: 사용자 비밀번호
+ *                 example: password123
  *               name:
  *                 type: string
  *                 description: 사용자 이름
+ *                 example: 홍길동
  *     responses:
  *       201:
  *         description: 회원 가입 성공
@@ -58,22 +62,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 errors:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       msg:
- *                         type: string
- *                       param:
- *                         type: string
- *                       location:
- *                         type: string
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 // 회원 가입
 router.post('/register',
@@ -103,13 +92,15 @@ router.post('/register',
  *             properties:
  *               email:
  *                 type: string
- *                 description: 이메일 주소
+ *                 description: 사용자 이메일
+ *                 example: user@example.com
  *               password:
  *                 type: string
- *                 description: 비밀번호
+ *                 description: 사용자 비밀번호
+ *                 example: password123
  *     responses:
  *       200:
- *         description: 로그인 성공
+ *         description: 로그인 성공, 토큰 발급
  *         content:
  *           application/json:
  *             schema:
@@ -120,49 +111,16 @@ router.post('/register',
  *                   example: success
  *                 accessToken:
  *                   type: string
- *                   description: 액세스 토큰 (JWT)
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
  *                 refreshToken:
  *                   type: string
- *                   description: 리프레시 토큰
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6...
  *       400:
  *         description: 입력 데이터 오류 또는 인증 실패
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: 존재하지 않는 이메일입니다.
- *       401:
- *         description: 인증 실패 (유효하지 않은 토큰 등)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: 유효하지 않은 토큰입니다.
- *       500:
- *         description: 서버 내부 오류
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: 서버 오류가 발생했습니다.
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 // 로그인
 router.post('/login',
@@ -172,9 +130,65 @@ router.post('/login',
     ]),
     authController.login
   );
-
+/**
+ * @swagger
+ * /auth/profile:
+ *   put:
+ *     summary: 회원 정보 수정
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: 사용자 이름
+ *                 example: 홍길동
+ *               password:
+ *                 type: string
+ *                 description: 사용자 비밀번호
+ *                 example: newpassword123
+ *     responses:
+ *       200:
+ *         description: 회원 정보 수정 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: 회원 정보가 수정되었습니다.
+ *       400:
+ *         description: 입력 데이터 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 // 회원 정보 수정
-router.put('/profile', authMiddleware, authController.updateProfile);
+router.put('/profile',
+  authMiddleware,
+  validate([
+    body('name').optional().notEmpty().withMessage('이름을 입력하세요.'),
+    body('password').optional().isLength({ min: 6 }).withMessage('비밀번호는 최소 6자 이상이어야 합니다.'),
+  ]),
+  authController.updateProfile
+);
 /**
  * @swagger
  * /auth/profile:
@@ -195,20 +209,27 @@ router.put('/profile', authMiddleware, authController.updateProfile);
  *                   type: string
  *                   example: success
  *                 data:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     email:
- *                       type: string
- *                     name:
- *                       type: string
- *                     createdAt:
- *                       type: string
- *                     updatedAt:
- *                       type: string
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+// 회원 정보 조회
+router.get('/profile', authMiddleware, authController.getProfile);
+/**
+ * @swagger
+ * /auth/account:
+ *   delete:
+ *     summary: 회원 탈퇴
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 회원 탈퇴 성공
  *         content:
  *           application/json:
  *             schema:
@@ -216,14 +237,17 @@ router.put('/profile', authMiddleware, authController.updateProfile);
  *               properties:
  *                 status:
  *                   type: string
+ *                   example: success
  *                 message:
  *                   type: string
- *       500:
- *         description: 서버 오류
+ *                   example: 회원 탈퇴가 완료되었습니다.
+ *       401:
+ *         description: 인증 실패
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-// 회원 정보 조회
-router.get('/profile', authMiddleware, authController.getProfile);
-
 // 회원 탈퇴
 router.delete('/account', authMiddleware, authController.deleteAccount);
 /**
@@ -286,7 +310,12 @@ router.delete('/account', authMiddleware, authController.deleteAccount);
  *                   example: 유효하지 않은 Refresh Token입니다.
  */
 // 토큰 갱신
-router.post('/refresh', authController.refreshToken);
+router.post('/refresh',
+  validate([
+    body('refreshToken').notEmpty().withMessage('Refresh Token을 제공해야 합니다.'),
+  ]),
+  authController.refreshToken
+);
 /**
  * @swagger
  * /auth/logout:
@@ -309,19 +338,12 @@ router.post('/refresh', authController.refreshToken);
  *                 message:
  *                   type: string
  *                   example: 로그아웃 되었습니다.
- *       500:
- *         description: 서버 오류
+ *       401:
+ *         description: 인증 실패
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: error
- *                 message:
- *                   type: string
- *                   example: 서버 오류가 발생했습니다.
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 // 로그아웃
 router.post('/logout', authMiddleware, authController.logout);

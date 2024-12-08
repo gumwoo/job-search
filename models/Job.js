@@ -53,17 +53,17 @@
 const mongoose = require('mongoose');
 
 const jobSchema = new mongoose.Schema({
-  company: String,
-  title: String,
-  link: { type: String, unique: true },
-  location: String,
-  experience: String,
-  education: String,
-  employmentType: String,
-  deadline: String,
-  sector: String,
-  salary: String,
-  skills: [String],
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  title: { type: String, required: true },
+  link: { type: String, unique: true, required: true },
+  location: { type: String, required: true },
+  experience: { type: String, required: true },
+  education: { type: String, required: true },
+  employmentType: { type: String, required: true },
+  deadline: { type: String, required: true },
+  sector: { type: String, required: true },
+  salary: { type: String, required: true },
+  skills: { type: [String], required: true },
   views: { type: Number, default: 0 }, // 조회수 필드 추가
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

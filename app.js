@@ -34,21 +34,20 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   .catch(err => console.log('MongoDB 연결 오류:', err));
 
 // 미들웨어 설정
-app.use('/notifications', notificationRoutes);
 app.use(cors());
 app.use(express.json());
 app.use(helmet());
 app.use(expressStatusMonitor());
-app.use('/messages', messageRoutes);
 app.use(limiter);
 app.use('/resumes', resumeRoutes);
-// Swagger UI 설정
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
-// 라우트 설정
+app.use('/notifications', notificationRoutes);
+app.use('/messages', messageRoutes);
 app.use('/auth', authRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/bookmarks', bookmarkRoutes);
+// Swagger UI 설정
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 // morgan과 winston을 연동하여 요청 로깅
 app.use(morgan('combined', {
   stream: {

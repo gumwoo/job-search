@@ -30,11 +30,16 @@
  */
 
 const mongoose = require('mongoose');
+const Application = require('./Application');
+const Bookmark = require('./Bookmark');
+const Message = require('./Message');
+const Notification = require('./Notification');
+const Resume = require('./Resume');
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  name: String,
+  name: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' }, // 역할 필드 추가
   refreshToken: { type: String },
   createdAt: { type: Date, default: Date.now },

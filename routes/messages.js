@@ -38,11 +38,25 @@ const { validate } = require('../middlewares/validationMiddleware');
  *               content:
  *                 type: string
  *                 description: 메시지 내용
- *     responses:
+ *      responses:
  *       201:
  *         description: 메시지 전송 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Message'
  *       400:
  *         description: 입력 데이터 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: 인증 실패
  *       404:
@@ -79,11 +93,39 @@ router.post('/',
  *           type: integer
  *           default: 1
  *         description: "페이지 번호 (기본값: 1)"
- *     responses:
+ *      responses:
  *       200:
  *         description: 메시지 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Message'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
+ *                     totalItems:
+ *                       type: integer
+ *                       example: 100
  *       400:
  *         description: 입력 데이터 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: 인증 실패
  */
@@ -112,9 +154,19 @@ router.get('/',
  *         description: 메시지 ID
  *         schema:
  *           type: string
- *     responses:
+ *      responses:
  *       200:
- *         description: 메시지 조회 성공
+ *         description: 메시지 상세 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Message'
  *       401:
  *         description: 인증 실패
  *       404:
@@ -147,6 +199,16 @@ router.get('/:id',
  *     responses:
  *       200:
  *         description: 메시지 읽음 처리 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Message'
  *       401:
  *         description: 인증 실패
  *       404:

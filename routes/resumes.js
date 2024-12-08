@@ -19,6 +19,18 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
+/**
+ * @swagger
+ * tags:
+ *   name: Resumes
+ *   description: 이력서 CRUD API
+ */
+/**
+ * @swagger
+ * tags:
+ *   name: Resumes
+ *   description: 이력서 CRUD API
+ */
 
 /**
  * @swagger
@@ -37,22 +49,39 @@ const upload = multer({ storage: storage });
  *             required:
  *               - title
  *               - content
+ *               - file
  *             properties:
  *               title:
  *                 type: string
  *                 description: 이력서 제목
+ *                 example: 경력직 이력서
  *               content:
  *                 type: string
  *                 description: 이력서 내용
+ *                 example: 경력 내용...
  *               file:
  *                 type: string
  *                 format: binary
- *                 description: 이력서 파일 (선택)
+ *                 description: 이력서 파일
  *     responses:
  *       201:
  *         description: 이력서 작성 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Resume'
  *       400:
  *         description: 입력 데이터 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: 인증 실패
  */
@@ -80,24 +109,46 @@ router.post('/',
  *         name: page
  *         schema:
  *           type: integer
- *           default: 1
- *         description: "페이지 번호 (기본값: 1)"
+ *           example: 1
+ *         description: 페이지 번호 (기본값: 1)
  *     responses:
  *       200:
  *         description: 이력서 목록 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Resume'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     currentPage:
+ *                       type: integer
+ *                       example: 1
+ *                     totalPages:
+ *                       type: integer
+ *                       example: 5
+ *                     totalItems:
+ *                       type: integer
+ *                       example: 100
  *       401:
  *         description: 인증 실패
  */
  // 이력서 목록 조회
-router.get('/',
-    authMiddleware,
-    validate([
-      // 추가적인 쿼리 파라미터 검증 가능
-      // 예: page 파라미터 검증
-      body('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.')
-    ]),
-    resumeController.getResumes
-  );
+ router.get('/',
+  authMiddleware,
+  validate([
+    query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.')
+  ]),
+  resumeController.getResumes
+);
 
 /**
  * @swagger
@@ -114,8 +165,9 @@ router.get('/',
  *         description: 이력서 ID
  *         schema:
  *           type: string
+ *           example: 60d0fe4f5311236168a109d2
  *     requestBody:
- *       required: true
+ *       required: false
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -124,18 +176,34 @@ router.get('/',
  *               title:
  *                 type: string
  *                 description: 이력서 제목
+ *                 example: 경력직 이력서 업데이트
  *               content:
  *                 type: string
  *                 description: 이력서 내용
+ *                 example: 업데이트된 경력 내용...
  *               file:
  *                 type: string
  *                 format: binary
- *                 description: 이력서 파일 (선택)
+ *                 description: 이력서 파일
  *     responses:
  *       200:
  *         description: 이력서 수정 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Resume'
  *       400:
- *         description: 입력 데이터 오류
+ *         description: 입력 데이터 오류 또는 중복 파일
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: 인증 실패
  *       404:
@@ -167,9 +235,21 @@ router.put('/:id',
  *         description: 이력서 ID
  *         schema:
  *           type: string
+ *           example: 60d0fe4f5311236168a109d2
  *     responses:
  *       200:
  *         description: 이력서 삭제 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: 이력서가 삭제되었습니다.
  *       401:
  *         description: 인증 실패
  *       404:

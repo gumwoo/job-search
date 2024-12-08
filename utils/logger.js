@@ -17,9 +17,6 @@ const logger = createLogger({
   ),
   transports: [
     new transports.Console(),
-    // 파일로 로그를 저장하려면 아래 주석을 해제하세요.
-    // new transports.File({ filename: 'logs/error.log', level: 'error' }),
-    // new transports.File({ filename: 'logs/combined.log' }),
   ],
 });
 
