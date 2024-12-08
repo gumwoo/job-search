@@ -12,8 +12,8 @@ const options = {
   },
   servers: [
     {
-      url: 'http://localhost:443',
-      description: '개발 서버',
+      url: 'http://113.198.66.75:17202',
+      description: '프로덕션 서버',
     },
   ],
   components: {
