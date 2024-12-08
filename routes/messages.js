@@ -2,7 +2,10 @@
 
 const express = require('express');
 const router = express.Router();
-const messageController = require('../controllers/messageController');
+const MessageController = require('../controllers/messageController');
+const Message = require('../models/Message');
+const User = require('../models/User');
+const CustomError = require('../utils/customError');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { body, query, param } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
@@ -13,6 +16,9 @@ const { validate } = require('../middlewares/validationMiddleware');
  *   name: Messages
  *   description: 메시지 관련 API
  */
+
+// MessageController 인스턴스 생성 시 의존성 주입
+const messageController = new MessageController(Message, User, CustomError);
 
 /**
  * @swagger
@@ -62,15 +68,15 @@ const { validate } = require('../middlewares/validationMiddleware');
  *       404:
  *         description: 수신자를 찾을 수 없음
  */
- // 메시지 전송
+// 메시지 전송
 router.post('/',
-    authMiddleware,
-    validate([
-      body('receiverId').isMongoId().withMessage('유효한 수신자 ID를 입력하세요.'),
-      body('content').notEmpty().withMessage('메시지 내용을 입력하세요.'),
-    ]),
-    messageController.sendMessage
-  );
+  authMiddleware,
+  validate([
+    body('receiverId').isMongoId().withMessage('유효한 수신자 ID를 입력하세요.'),
+    body('content').notEmpty().withMessage('메시지 내용을 입력하세요.'),
+  ]),
+  (req, res, next) => messageController.sendMessage(req, res, next)
+);
 
 /**
  * @swagger
@@ -130,14 +136,14 @@ router.post('/',
  *         description: 인증 실패
  */
  // 메시지 목록 조회
-router.get('/',
-    authMiddleware,
-    validate([
-      query('conversationWith').isMongoId().withMessage('유효한 대화 상대방 ID를 입력하세요.'),
-      query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.')
-    ]),
-    messageController.getMessages
-  );
+ router.get('/',
+  authMiddleware,
+  validate([
+    query('conversationWith').isMongoId().withMessage('유효한 대화 상대방 ID를 입력하세요.'),
+    query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.')
+  ]),
+  (req, res, next) => messageController.getMessages(req, res, next)
+);
 
 /**
  * @swagger
@@ -173,13 +179,14 @@ router.get('/',
  *         description: 메시지를 찾을 수 없음
  */
  // 메시지 상세 조회
+// 메시지 상세 조회
 router.get('/:id',
-    authMiddleware,
-    validate([
-      param('id').isMongoId().withMessage('유효한 메시지 ID를 입력하세요.')
-    ]),
-    messageController.getMessageById
-  );
+  authMiddleware,
+  validate([
+    param('id').isMongoId().withMessage('유효한 메시지 ID를 입력하세요.')
+  ]),
+  (req, res, next) => messageController.getMessageById(req, res, next)
+);
 
 /**
  * @swagger
@@ -214,13 +221,13 @@ router.get('/:id',
  *       404:
  *         description: 메시지를 찾을 수 없음
  */
- // 메시지 읽음 처리
+// 메시지 읽음 처리
 router.patch('/:id/read',
-    authMiddleware,
-    validate([
-      param('id').isMongoId().withMessage('유효한 메시지 ID를 입력하세요.')
-    ]),
-    messageController.markAsRead
-  );
+  authMiddleware,
+  validate([
+    param('id').isMongoId().withMessage('유효한 메시지 ID를 입력하세요.')
+  ]),
+  (req, res, next) => messageController.markAsRead(req, res, next)
+);
 
 module.exports = router;

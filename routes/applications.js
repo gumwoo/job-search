@@ -2,16 +2,26 @@
 
 const express = require('express');
 const router = express.Router();
-const applicationController = require('../controllers/applicationController');
+const ApplicationController = require('../controllers/applicationController');
+const Application = require('../models/Application');
+const Job = require('../models/Job');
+const Resume = require('../models/Resume');
+const CustomError = require('../utils/customError');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
+
 /**
  * @swagger
  * tags:
  *   name: Applications
  *   description: 지원 관련 API
  */
+
+// ApplicationController 인스턴스 생성 시 의존성 주입
+const applicationController = new ApplicationController(Application, Job, Resume, CustomError);
+
+
 /**
  * @swagger
  * /applications:
@@ -64,13 +74,13 @@ const { validate } = require('../middlewares/validationMiddleware');
  */
 // 지원하기
 router.post('/',
-    authMiddleware,
-    validate([
-      body('jobId').isMongoId().withMessage('유효한 채용 공고 ID를 입력하세요.'),
-      body('resumeId').isMongoId().withMessage('유효한 이력서 ID를 입력하세요.'),
-    ]),
-    applicationController.applyJob
-  );
+  authMiddleware,
+  validate([
+    body('jobId').isMongoId().withMessage('유효한 채용 공고 ID를 입력하세요.'),
+    body('resumeId').isMongoId().withMessage('유효한 이력서 ID를 입력하세요.'),
+  ]),
+  (req, res, next) => applicationController.applyJob(req, res, next)
+);
 // 지원 내역 조회
 /**
  * @swagger
@@ -117,13 +127,16 @@ router.post('/',
  *       401:
  *         description: 인증 실패
  */
+// 지원 내역 조회
 router.get('/',
-    authMiddleware,
-    validate([
-      query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.')
-    ]),
-    applicationController.getApplications
-  );
+  authMiddleware,
+  validate([
+    query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
+    query('status').optional().isIn(['Pending', 'Accepted', 'Rejected', 'Cancelled']).withMessage('유효한 지원 상태를 선택하세요.'),
+    query('sortBy').optional().isIn(['date', 'status']).withMessage('유효한 정렬 기준을 선택하세요.'),
+  ]),
+  (req, res, next) => applicationController.getApplications(req, res, next)
+);
   
 // 지원 취소
 /**
@@ -161,11 +174,12 @@ router.get('/',
  *       404:
  *         description: 지원을 찾을 수 없음
  */
+// 지원 취소
 router.delete('/:id',
-    authMiddleware,
-    validate([
-      param('id').isMongoId().withMessage('유효한 지원 ID를 입력하세요.')
-    ]),
-    applicationController.cancelApplication
-  );
+  authMiddleware,
+  validate([
+    param('id').isMongoId().withMessage('유효한 지원 ID를 입력하세요.')
+  ]),
+  (req, res, next) => applicationController.cancelApplication(req, res, next)
+);
 module.exports = router;

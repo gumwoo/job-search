@@ -1,10 +1,13 @@
 // routes/auth.js
 
-const { body } = require('express-validator');
-const { validate } = require('../middlewares/validationMiddleware');
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
+const AuthController = require('../controllers/authController');
+const User = require('../models/User');
+const CustomError = require('../utils/customError');
+const { generateAccessToken, generateRefreshToken } = require('../utils/token');
+const { body } = require('express-validator');
+const { validate } = require('../middlewares/validationMiddleware');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
@@ -13,6 +16,9 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *   name: Auth
  *   description: 사용자 인증 관련 API
  */
+
+// AuthController 인스턴스 생성 시 의존성 주입
+const authController = new AuthController(User, CustomError, { generateAccessToken, generateRefreshToken });
 
 /**
  * @swagger
@@ -66,13 +72,13 @@ const authMiddleware = require('../middlewares/authMiddleware');
  */
 // 회원 가입
 router.post('/register',
-    validate([
-      body('email').isEmail().withMessage('유효한 이메일을 입력하세요.'),
-      body('password').isLength({ min: 6 }).withMessage('비밀번호는 최소 6자 이상이어야 합니다.'),
-      body('name').notEmpty().withMessage('이름을 입력하세요.'),
-    ]),
-    authController.register
-  );
+  validate([
+    body('email').isEmail().withMessage('유효한 이메일을 입력하세요.'),
+    body('password').isLength({ min: 6 }).withMessage('비밀번호는 최소 6자 이상이어야 합니다.'),
+    body('name').notEmpty().withMessage('이름을 입력하세요.'),
+  ]),
+  (req, res, next) => authController.register(req, res, next)
+);
 
 /**
  * @swagger
@@ -124,12 +130,12 @@ router.post('/register',
  */
 // 로그인
 router.post('/login',
-    validate([
-      body('email').isEmail().withMessage('유효한 이메일을 입력하세요.'),
-      body('password').isLength({ min: 6 }).withMessage('비밀번호가 올바르지 않습니다.'),
-    ]),
-    authController.login
-  );
+  validate([
+    body('email').isEmail().withMessage('유효한 이메일을 입력하세요.'),
+    body('password').isLength({ min: 6 }).withMessage('비밀번호는 최소 6자 이상이어야 합니다.'),
+  ]),
+  (req, res, next) => authController.login(req, res, next)
+);
 /**
  * @swagger
  * /auth/profile:
@@ -187,7 +193,7 @@ router.put('/profile',
     body('name').optional().notEmpty().withMessage('이름을 입력하세요.'),
     body('password').optional().isLength({ min: 6 }).withMessage('비밀번호는 최소 6자 이상이어야 합니다.'),
   ]),
-  authController.updateProfile
+  (req, res, next) => authController.updateProfile(req, res, next)
 );
 /**
  * @swagger
@@ -218,7 +224,10 @@ router.put('/profile',
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 // 회원 정보 조회
-router.get('/profile', authMiddleware, authController.getProfile);
+router.get('/profile',
+  authMiddleware,
+  (req, res, next) => authController.getProfile(req, res, next)
+);
 /**
  * @swagger
  * /auth/account:
@@ -249,7 +258,10 @@ router.get('/profile', authMiddleware, authController.getProfile);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 // 회원 탈퇴
-router.delete('/account', authMiddleware, authController.deleteAccount);
+router.delete('/account',
+  authMiddleware,
+  (req, res, next) => authController.deleteAccount(req, res, next)
+);
 /**
  * @swagger
  * /auth/refresh:
@@ -314,8 +326,9 @@ router.post('/refresh',
   validate([
     body('refreshToken').notEmpty().withMessage('Refresh Token을 제공해야 합니다.'),
   ]),
-  authController.refreshToken
+  (req, res, next) => authController.refreshToken(req, res, next)
 );
+
 /**
  * @swagger
  * /auth/logout:
@@ -346,6 +359,8 @@ router.post('/refresh',
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 // 로그아웃
-router.post('/logout', authMiddleware, authController.logout);
-
+router.post('/logout',
+  authMiddleware,
+  (req, res, next) => authController.logout(req, res, next)
+);
 module.exports = router;

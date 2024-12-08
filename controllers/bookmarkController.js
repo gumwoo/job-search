@@ -1,109 +1,123 @@
 // controllers/bookmarkController.js
 
-const Bookmark = require('../models/Bookmark');
-const Job = require('../models/Job');
-const CustomError = require('../utils/customError');
-
-// 북마크 토글 (추가/제거)
-exports.toggleBookmark = async (req, res, next) => {
-  try {
-    const { jobId } = req.body;
-
-    if (!jobId) {
-      throw new CustomError(400, 'jobId가 필요합니다.');
-    }
-
-    const job = await Job.findById(jobId);
-    if (!job) {
-      throw new CustomError(404, '채용 공고를 찾을 수 없습니다.', 'JOB_NOT_FOUND');
-    }
-
-
-    const existingBookmark = await Bookmark.findOne({ user: req.user._id, job: jobId });
-
-    if (existingBookmark) {
-      await Bookmark.findOneAndDelete({ user: req.user._id, job: jobId });
-      return res.json({ status: 'success', message: '북마크가 제거되었습니다.' });
-    } else {
-      const bookmark = new Bookmark({ user: req.user._id, job: jobId });
-      await bookmark.save();
-      return res.status(201).json({ status: 'success', data: bookmark });
-    }
-  } catch (err) {
-    next(err);
+/**
+ * BookmarkController 클래스는 북마크와 관련된 모든 비즈니스 로직을 처리합니다.
+ */
+class BookmarkController {
+  /**
+   * BookmarkController 생성자
+   * @param {Model} bookmarkModel - Bookmark Mongoose 모델
+   * @param {CustomError} customError - 커스텀 에러 클래스
+   */
+  constructor(bookmarkModel, customError) {
+    this.Bookmark = bookmarkModel;
+    this.CustomError = customError;
   }
-};
 
-// 북마크 목록 조회 with 필터링 및 검색
-exports.getBookmarks = async (req, res, next) => {
-  try {
-    const { page = 1, location, experience, salary, skills, keyword } = req.query;
-    const limit = 20;
-    const skip = (page - 1) * limit;
+  /**
+   * 북마크 토글 (추가/제거)
+   * @param {Request} req - Express 요청 객체
+   * @param {Response} res - Express 응답 객체
+   * @param {function} next - Express next 미들웨어 함수
+   * @returns {Promise<void>}
+   * @throws {CustomError} - 데이터베이스 오류 시 발생
+   */
+  async toggleBookmark(req, res, next) {
+    try {
+      const { jobId } = req.body;
+      const userId = req.user._id;
 
-    const query = { user: req.user._id };
+      const bookmark = await this.Bookmark.findOne({ user: userId, job: jobId });
 
-    if (location) {
-      query['job.location'] = { $regex: location, $options: 'i' };
+      if (bookmark) {
+        await this.Bookmark.deleteOne({ _id: bookmark._id });
+        return res.status(200).json({ status: 'success', message: '북마크가 제거되었습니다.' });
+      }
+
+      const newBookmark = new this.Bookmark({ user: userId, job: jobId });
+      await newBookmark.save();
+      return res.status(201).json({ status: 'success', message: '북마크가 추가되었습니다.' });
+    } catch (err) {
+      next(err);
     }
-
-    if (experience) {
-      query['job.experience'] = { $regex: experience, $options: 'i' };
-    }
-
-    if (salary) {
-      query['job.salary'] = { $regex: salary, $options: 'i' };
-    }
-
-    if (skills) {
-      query['job.skills'] = { $in: skills.split(',') };
-    }
-
-    if (keyword) {
-      query['job.title'] = { $regex: keyword, $options: 'i' };
-    }
-
-    const totalItems = await Bookmark.countDocuments(query);
-    const totalPages = Math.ceil(totalItems / limit);
-
-    const bookmarks = await Bookmark.find(query)
-      .populate({
-        path: 'job',
-        match: {
-          $or: [
-            { title: { $regex: keyword, $options: 'i' } },
-            // 회사명 검색을 위해 회사 모델과 연동 필요
-          ]
-        }
-      })
-      .populate('job')
-      .sort({ bookmarkedAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    res.json({
-      status: 'success',
-      data: bookmarks,
-      pagination: {
-        currentPage: Number(page),
-        totalPages,
-        totalItems,
-      },
-    });
-  } catch (err) {
-    next(err);
   }
-};
-// 북마크 제거 (별도의 DELETE 요청용)
-exports.removeBookmark = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const bookmark = await Bookmark.findOneAndDelete({ _id: id, user: req.user._id });
-    if (!bookmark) {
-      return res.status(404).json({ status: "error", message: "북마크를 찾을 수 없습니다." });
+
+  /**
+   * 북마크 목록 조회
+   * @param {Request} req - Express 요청 객체
+   * @param {Response} res - Express 응답 객체
+   * @param {function} next - Express next 미들웨어 함수
+   * @returns {Promise<void>}
+   * @throws {CustomError} - 데이터베이스 오류 시 발생
+   */
+  async getBookmarks(req, res, next) {
+    try {
+      const userId = req.user._id;
+      const { page = 1, location, experience, salary, skills, keyword } = req.query;
+      const limit = 20;
+      const skip = (page - 1) * limit;
+
+      const query = { user: userId };
+
+      // 추가적인 필터링 조건
+      if (location) query.location = location;
+      if (experience) query.experience = experience;
+      if (salary) query.salary = salary;
+      if (skills) query.skills = { $all: skills.split(',').map(skill => skill.trim()) };
+      if (keyword) {
+        query.$or = [
+          { title: { $regex: keyword, $options: 'i' } },
+          { 'company.name': { $regex: keyword, $options: 'i' } }
+        ];
+      }
+
+      const totalItems = await this.Bookmark.countDocuments(query);
+      const totalPages = Math.ceil(totalItems / limit);
+      const currentPage = parseInt(page, 10);
+
+      const bookmarks = await this.Bookmark.find(query)
+        .populate('job')
+        .skip(skip)
+        .limit(limit);
+
+      res.json({
+        status: 'success',
+        data: bookmarks,
+        pagination: {
+          currentPage,
+          totalPages,
+          totalItems,
+        },
+      });
+    } catch (err) {
+      next(err);
     }
-    res.json({ status: "success", message: "북마크가 제거되었습니다." });
-  } catch (err) {
-    next(err);
   }
-};
+
+  /**
+   * 북마크 제거
+   * @param {Request} req - Express 요청 객체
+   * @param {Response} res - Express 응답 객체
+   * @param {function} next - Express next 미들웨어 함수
+   * @returns {Promise<void>}
+   * @throws {CustomError} - 북마크 미존재 시 발생
+   */
+  async removeBookmark(req, res, next) {
+    try {
+      const { id } = req.params;
+      const userId = req.user._id;
+
+      const bookmark = await this.Bookmark.findOne({ _id: id, user: userId });
+      if (!bookmark) {
+        throw new this.CustomError(404, '북마크를 찾을 수 없습니다.');
+      }
+
+      await this.Bookmark.deleteOne({ _id: id });
+      res.json({ status: 'success', message: '북마크가 삭제되었습니다.' });
+    } catch (err) {
+      next(err);
+    }
+  }
+}
+
+module.exports = BookmarkController;

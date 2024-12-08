@@ -1,17 +1,22 @@
+// routes/bookmarks.js
+
 const express = require('express');
 const router = express.Router();
-const { body, param, query } = require('express-validator');
+const BookmarkController = require('../controllers/bookmarkController');
+const Bookmark = require('../models/Bookmark');
+const CustomError = require('../utils/customError');
 const authMiddleware = require('../middlewares/authMiddleware');
-const bookmarkController = require('../controllers/bookmarkController');
+const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 
+// BookmarkController 인스턴스 생성 시 의존성 주입
+const bookmarkController = new BookmarkController(Bookmark, CustomError);
 /**
  * @swagger
  * tags:
  *   name: Bookmarks
  *   description: 북마크 관련 API
  */
-
 
 /**
  * @swagger
@@ -45,14 +50,14 @@ const { validate } = require('../middlewares/validationMiddleware');
  *       404:
  *         description: 채용 공고를 찾을 수 없음
  */
- // 북마크 토글 (추가/제거)
- router.post('/',
-    authMiddleware,
-    validate([
-      body('jobId').isMongoId().withMessage('유효한 채용 공고 ID를 입력하세요.')
-    ]),
-    bookmarkController.toggleBookmark
-  );
+// 북마크 토글 (추가/제거)
+router.post('/',
+  authMiddleware,
+  validate([
+    body('jobId').isMongoId().withMessage('유효한 채용 공고 ID를 입력하세요.')
+  ]),
+  (req, res, next) => bookmarkController.toggleBookmark(req, res, next)
+);
 
 /**
  * @swagger
@@ -104,18 +109,17 @@ const { validate } = require('../middlewares/validationMiddleware');
  */
  // 북마크 목록 조회 with 필터링 및 검색
 router.get('/',
-    authMiddleware,
-    validate([
-      // 추가적인 쿼리 파라미터 검증 가능
-      query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
-      body('location').optional().isString(),
-      body('experience').optional().isString(),
-      body('salary').optional().isString(),
-      body('skills').optional().isString(),
-      body('keyword').optional().isString(),
-    ]),
-    bookmarkController.getBookmarks
-  );
+  authMiddleware,
+  validate([
+    query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
+    query('location').optional().isString().withMessage('유효한 지역을 입력하세요.'),
+    query('experience').optional().isString().withMessage('유효한 경력을 입력하세요.'),
+    query('salary').optional().isString().withMessage('유효한 급여를 입력하세요.'),
+    query('skills').optional().isString().withMessage('유효한 기술 스택을 입력하세요.'),
+    query('keyword').optional().isString().withMessage('유효한 키워드를 입력하세요.'),
+  ]),
+  (req, res, next) => bookmarkController.getBookmarks(req, res, next)
+);
 
 /**
  * @swagger
@@ -140,13 +144,13 @@ router.get('/',
  *       401:
  *         description: 인증 실패
  */
- // 북마크 제거
+// 북마크 제거
 router.delete('/:id',
-    authMiddleware,
-    validate([
-      param('id').isMongoId().withMessage('유효한 북마크 ID를 입력하세요.')
-    ]),
-    bookmarkController.removeBookmark
-  );
+  authMiddleware,
+  validate([
+    param('id').isMongoId().withMessage('유효한 북마크 ID를 입력하세요.')
+  ]),
+  (req, res, next) => bookmarkController.removeBookmark(req, res, next)
+);
 
 module.exports = router;

@@ -2,7 +2,9 @@
 
 const express = require('express');
 const router = express.Router();
-const resumeController = require('../controllers/resumeController');
+const ResumeController = require('../controllers/resumeController');
+const Resume = require('../models/Resume');
+const CustomError = require('../utils/customError');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
@@ -80,15 +82,15 @@ const upload = multer({ storage: storage });
  *         description: 인증 실패
  */
  // 이력서 작성
-router.post('/',
-    authMiddleware,
-    upload.single('file'),
-    validate([
-      body('title').notEmpty().withMessage('제목을 입력하세요.'),
-      body('content').notEmpty().withMessage('내용을 입력하세요.'),
-    ]),
-    resumeController.createResume
-  );
+ router.post('/',
+  authMiddleware,
+  upload.single('file'),
+  validate([
+    body('title').notEmpty().withMessage('제목을 입력하세요.'),
+    body('content').notEmpty().withMessage('내용을 입력하세요.'),
+  ]),
+  (req, res, next) => resumeController.createResume(req, res, next)
+);
 
 /**
  * @swagger
@@ -141,7 +143,7 @@ router.post('/',
   validate([
     query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.')
   ]),
-  resumeController.getResumes
+  (req, res, next) => resumeController.getResumes(req, res, next)
 );
 
 /**
@@ -203,16 +205,16 @@ router.post('/',
  *       404:
  *         description: 이력서를 찾을 수 없음
  */
- // 이력서 수정
+// 이력서 수정
 router.put('/:id',
-    authMiddleware,
-    upload.single('file'),
-    validate([
-      body('title').optional().notEmpty().withMessage('제목을 입력하세요.'),
-      body('content').optional().notEmpty().withMessage('내용을 입력하세요.'),
-    ]),
-    resumeController.updateResume
-  );
+  authMiddleware,
+  upload.single('file'),
+  validate([
+    body('title').optional().notEmpty().withMessage('제목을 입력하세요.'),
+    body('content').optional().notEmpty().withMessage('내용을 입력하세요.'),
+  ]),
+  (req, res, next) => resumeController.updateResume(req, res, next)
+);
 
 /**
  * @swagger
@@ -250,12 +252,13 @@ router.put('/:id',
  *         description: 이력서를 찾을 수 없음
  */
  // 이력서 삭제
-router.delete('/:id',
-    authMiddleware,
-    validate([
-      param('id').isMongoId().withMessage('유효한 이력서 ID를 입력하세요.')
-    ]),
-    resumeController.deleteResume
-  );
+ router.delete('/:id',
+  authMiddleware,
+  validate([
+    param('id').isMongoId().withMessage('유효한 이력서 ID를 입력하세요.')
+  ]),
+  (req, res, next) => resumeController.deleteResume(req, res, next)
+);
+
 
 module.exports = router;

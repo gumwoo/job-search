@@ -2,9 +2,11 @@
 
 const express = require('express');
 const router = express.Router();
-const notificationController = require('../controllers/notificationController');
+const NotificationController = require('../controllers/notificationController');
+const Notification = require('../models/Notification');
+const CustomError = require('../utils/customError');
 const authMiddleware = require('../middlewares/authMiddleware');
-const { param,query } = require('express-validator');
+const { param, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 
 /**
@@ -13,6 +15,9 @@ const { validate } = require('../middlewares/validationMiddleware');
  *   name: Notifications
  *   description: 알림 관련 API
  */
+
+// NotificationController 인스턴스 생성 시 의존성 주입
+const notificationController = new NotificationController(Notification, CustomError);
 
 /**
  * @swagger
@@ -65,7 +70,7 @@ const { validate } = require('../middlewares/validationMiddleware');
   validate([
     query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.')
   ]),
-  notificationController.getNotifications
+  (req, res, next) => notificationController.getNotifications(req, res, next)
 );
 /**
  * @swagger
@@ -101,14 +106,14 @@ const { validate } = require('../middlewares/validationMiddleware');
  *       404:
  *         description: 알림을 찾을 수 없음
  */
- // 알림 읽음 처리
- router.put('/:id/read',
-    authMiddleware,
-    validate([
-      param('id').isMongoId().withMessage('유효한 알림 ID를 입력하세요.')
-    ]),
-    notificationController.markAsRead
-  );
+// 알림 읽음 처리
+router.put('/:id/read',
+  authMiddleware,
+  validate([
+    param('id').isMongoId().withMessage('유효한 알림 ID를 입력하세요.')
+  ]),
+  (req, res, next) => notificationController.markAsRead(req, res, next)
+);
 /**
  * @swagger
  * /notifications/{id}:
@@ -146,10 +151,10 @@ const { validate } = require('../middlewares/validationMiddleware');
  */
 // 알림 삭제
 router.delete('/:id',
-    authMiddleware,
-    validate([
-      param('id').isMongoId().withMessage('유효한 알림 ID를 입력하세요.')
-    ]),
-    notificationController.deleteNotification
-  );
+  authMiddleware,
+  validate([
+    param('id').isMongoId().withMessage('유효한 알림 ID를 입력하세요.')
+  ]),
+  (req, res, next) => notificationController.deleteNotification(req, res, next)
+);
 module.exports = router;

@@ -2,19 +2,23 @@
 
 const express = require('express');
 const router = express.Router();
-const jobController = require('../controllers/jobController');
+const JobController = require('../controllers/jobController');
+const Job = require('../models/Job');
+const Company = require('../models/Company');
+const CustomError = require('../utils/customError');
 const authMiddleware = require('../middlewares/authMiddleware');
-const adminMiddleware = require('../middlewares/adminMiddleware'); // 관리자 권한 미들웨어 추가
-const { param, body,query } = require('express-validator');
+const adminMiddleware = require('../middlewares/adminMiddleware');
+const { param, body, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 
+// JobController 인스턴스 생성 시 의존성 주입
+const jobController = new JobController(Job, Company, CustomError);
 /**
  * @swagger
  * tags:
  *   name: Jobs
  *   description: 채용 공고 API
  */
-
 /**
  * @swagger
  * /jobs:
@@ -91,16 +95,15 @@ const { validate } = require('../middlewares/validationMiddleware');
  *       400:
  *         description: 잘못된 요청
  */
-
-// 공고 목록 조회
 router.get('/',
   validate([
     query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
     query('sortBy').optional().isIn(['createdAt', 'views']).withMessage('유효한 정렬 기준을 선택하세요.'),
     query('order').optional().isIn(['asc', 'desc']).withMessage('유효한 정렬 순서를 선택하세요.'),
   ]),
-  jobController.getJobs
+  (req, res, next) => jobController.getJobs(req, res, next)
 );
+
 /**
  * @swagger
  * /jobs:
@@ -188,18 +191,12 @@ router.get('/',
  *                   $ref: '#/components/schemas/Job'
  *       400:
  *         description: 입력 데이터 오류 또는 중복 공고
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: 인증 실패
  */
-
-// 채용 공고 등록 (관리자 권한 필요)
 router.post('/',
   authMiddleware,
-  adminMiddleware, // 관리자 권한 확인
+  adminMiddleware,
   validate([
     body('companyId').isMongoId().withMessage('유효한 회사 ID를 입력하세요.'),
     body('title').notEmpty().withMessage('채용 공고 제목을 입력하세요.'),
@@ -213,7 +210,7 @@ router.post('/',
     body('skills').isArray().withMessage('기술 스택은 배열 형태로 입력하세요.'),
     body('link').isURL().withMessage('유효한 채용 공고 링크를 입력하세요.'),
   ]),
-  jobController.createJob
+  (req, res, next) => jobController.createJob(req, res, next)
 );
 
 /**
@@ -299,20 +296,14 @@ router.post('/',
  *                   $ref: '#/components/schemas/Job'
  *       400:
  *         description: 입력 데이터 오류 또는 중복 링크
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: 인증 실패
  *       404:
  *         description: 채용 공고를 찾을 수 없음
  */
-
-// 채용 공고 수정 (관리자 권한 필요)
 router.put('/:id',
   authMiddleware,
-  adminMiddleware, // 관리자 권한 확인
+  adminMiddleware,
   validate([
     body('companyId').optional().isMongoId().withMessage('유효한 회사 ID를 입력하세요.'),
     body('title').optional().notEmpty().withMessage('채용 공고 제목을 입력하세요.'),
@@ -326,7 +317,7 @@ router.put('/:id',
     body('skills').optional().isArray().withMessage('기술 스택은 배열 형태로 입력하세요.'),
     body('link').optional().isURL().withMessage('유효한 채용 공고 링크를 입력하세요.'),
   ]),
-  jobController.updateJob
+  (req, res, next) => jobController.updateJob(req, res, next)
 );
 
 /**
@@ -368,11 +359,11 @@ router.put('/:id',
  */
 router.delete('/:id',
   authMiddleware,
-  adminMiddleware, // 관리자 권한 확인
+  adminMiddleware,
   validate([
     param('id').isMongoId().withMessage('유효한 채용 공고 ID를 입력하세요.')
   ]),
-  jobController.deleteJob
+  (req, res, next) => jobController.deleteJob(req, res, next)
 );
 
 /**
@@ -386,33 +377,15 @@ router.delete('/:id',
  *     responses:
  *       200:
  *         description: 기술 스택별 채용 공고 수 집계 성공
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                       count:
- *                         type: number
  *       401:
  *         description: 인증 실패
  *       500:
  *         description: 서버 오류
  */
-
 // 기술 스택별 채용 공고 수 집계
 router.get('/aggregate/skills',
   authMiddleware,
-  jobController.aggregateSkills
+  (req, res, next) => jobController.aggregateSkills(req, res, next)
 );
 
 module.exports = router;
