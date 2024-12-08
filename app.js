@@ -29,14 +29,19 @@ const limiter = rateLimit({
   });
 
 // MongoDB 연결
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB 연결 성공'))
   .catch(err => console.log('MongoDB 연결 오류:', err));
 
 // 미들웨어 설정
 app.use(cors());
 app.use(express.json());
-app.use(helmet());
+app.use(
+  helmet({
+    hsts: false, // HSTS 헤더 비활성화
+    contentSecurityPolicy: false, // 필요한 경우 CSP 비활성화
+  })
+);
 app.use(expressStatusMonitor());
 app.use(limiter);
 app.use('/resumes', resumeRoutes);
@@ -47,7 +52,16 @@ app.use('/jobs', jobRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/bookmarks', bookmarkRoutes);
 // Swagger UI 설정
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+// 필요 시 옵션 추가
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpecs, {
+    swaggerOptions: {
+      validatorUrl: null, // Validator를 비활성화하여 HTTPS 관련 이슈 방지
+    },
+  })
+);
 // morgan과 winston을 연동하여 요청 로깅
 app.use(morgan('combined', {
   stream: {

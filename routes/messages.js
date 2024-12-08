@@ -38,7 +38,7 @@ const { validate } = require('../middlewares/validationMiddleware');
  *               content:
  *                 type: string
  *                 description: 메시지 내용
- *      responses:
+ *     responses:
  *       201:
  *         description: 메시지 전송 성공
  *         content:
@@ -93,7 +93,7 @@ router.post('/',
  *           type: integer
  *           default: 1
  *         description: "페이지 번호 (기본값: 1)"
- *      responses:
+ *     responses:
  *       200:
  *         description: 메시지 목록 조회 성공
  *         content:
@@ -154,7 +154,7 @@ router.get('/',
  *         description: 메시지 ID
  *         schema:
  *           type: string
- *      responses:
+ *     responses:
  *       200:
  *         description: 메시지 상세 조회 성공
  *         content:
