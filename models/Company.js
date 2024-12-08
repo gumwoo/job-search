@@ -7,7 +7,7 @@ const companySchema = new mongoose.Schema({
   industry: String,
   size: String,
   location: String,
-  // 추가 필드들...
 });
-
+// 인덱스 설정
+companySchema.index({ name: 1 });
 module.exports = mongoose.model('Company', companySchema);

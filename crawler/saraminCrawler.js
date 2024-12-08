@@ -9,7 +9,9 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const mongoose = require('mongoose');
 const Job = require('../models/Job');
-const axiosRetry = require('axios-retry').default; // 정확한 경로 확인
+const Company = require('../models/Company');
+const axiosRetry = require('axios-retry').default;
+
 // axios-retry 설정
 axiosRetry(axios, {
   retries: 3, // 최대 재시도 횟수
@@ -45,7 +47,7 @@ async function crawlSaramin(keyword, pages = 1) {
         try {
           const job = jobListings.eq(i);
 
-          const company = job.find('.corp_name a').text().trim();
+          const companyName = job.find('.corp_name a').text().trim();
           const title = job.find('.job_tit a').text().trim();
           const link = 'https://www.saramin.co.kr' + job.find('.job_tit a').attr('href');
 
@@ -61,17 +63,29 @@ async function crawlSaramin(keyword, pages = 1) {
           const salaryBadge = job.find('.area_badge .badge');
           const salary = salaryBadge.text().trim();
           
-        // 기술 스택 추출 (가능한 경우)
+          // 기술 스택 추출 (가능한 경우)
           const skills = [];
           job.find('.job_sector a').each((idx, elem) => {
-              skills.push($(elem).text().trim());
+            skills.push($(elem).text().trim());
+          });
+
+          // 회사 정보 처리
+          let company = await Company.findOne({ name: companyName });
+          if (!company) {
+            company = new Company({
+              name: companyName,
+              // 필요한 경우 추가 필드도 설정
             });
+            await company.save();
+            console.log(`새로운 회사 저장: ${companyName}`);
+          }
+
           // 중복 데이터 검사 (이미 존재하는 경우 저장하지 않음)
           const existingJob = await Job.findOne({ link });
 
           if (!existingJob) {
             const newJob = new Job({
-              company,
+              company: company._id, // ObjectId로 참조
               title,
               link,
               location,

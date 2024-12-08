@@ -74,5 +74,8 @@ jobSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
-
+//skills 필드에 텍스트 인덱스를 추가
+jobSchema.index({ skills: 'text' });
+// 복합 인덱스 설정 (자주 사용하는 필드 조합)
+jobSchema.index({ location: 1, experience: 1, salary: 1, sector: 1 });
 module.exports = mongoose.model('Job', jobSchema);

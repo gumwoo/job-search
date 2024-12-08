@@ -15,8 +15,9 @@ exports.toggleBookmark = async (req, res, next) => {
 
     const job = await Job.findById(jobId);
     if (!job) {
-      throw new CustomError(404, '채용 공고를 찾을 수 없습니다.');
+      throw new CustomError(404, '채용 공고를 찾을 수 없습니다.', 'JOB_NOT_FOUND');
     }
+
 
     const existingBookmark = await Bookmark.findOne({ user: req.user._id, job: jobId });
 
@@ -89,6 +90,19 @@ exports.getBookmarks = async (req, res, next) => {
         totalItems,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+// 북마크 제거 (별도의 DELETE 요청용)
+exports.removeBookmark = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const bookmark = await Bookmark.findOneAndDelete({ _id: id, user: req.user._id });
+    if (!bookmark) {
+      return res.status(404).json({ status: "error", message: "북마크를 찾을 수 없습니다." });
+    }
+    res.json({ status: "success", message: "북마크가 제거되었습니다." });
   } catch (err) {
     next(err);
   }

@@ -20,5 +20,7 @@ resumeSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+// 인덱스 설정
+resumeSchema.index({ user: 1, updatedAt: -1 });
 
 module.exports = mongoose.model('Resume', resumeSchema);

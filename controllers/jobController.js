@@ -1,51 +1,55 @@
 // controllers/jobController.js
 
 const Job = require('../models/Job');
+const Company = require('../models/Company');
 const CustomError = require('../utils/customError');
 
-// 공고 목록 조회
+// 채용 공고 목록 조회
 exports.getJobs = async (req, res, next) => {
   try {
-    const { page = 1, location, experience, salary, skills, keyword } = req.query;
+    const { page = 1, keyword, location, experience, salary, skills, sortBy, order } = req.query;
     const limit = 20;
     const skip = (page - 1) * limit;
 
-    // 검색 및 필터링 조건
     const query = {};
-
     if (keyword) {
       query.title = { $regex: keyword, $options: 'i' };
     }
-
     if (location) {
-      query.location = { $regex: location, $options: 'i' };
+      query.location = location;
     }
-
     if (experience) {
-      query.experience = { $regex: experience, $options: 'i' };
+      query.experience = experience;
     }
-
     if (salary) {
-      query.salary = { $regex: salary, $options: 'i' };
+      query.salary = salary;
     }
-
     if (skills) {
-      query.skills = { $in: skills.split(',') };
+      query.skills = { $all: skills.split(',').map(skill => skill.trim()) };
     }
 
     const totalItems = await Job.countDocuments(query);
     const totalPages = Math.ceil(totalItems / limit);
+    const currentPage = parseInt(page, 10);
+
+    let sortCriteria = {};
+    if (sortBy) {
+      sortCriteria[sortBy] = order === 'desc' ? -1 : 1;
+    } else {
+      sortCriteria = { createdAt: -1 };
+    }
 
     const jobs = await Job.find(query)
-      .limit(limit)
+      .sort(sortCriteria)
       .skip(skip)
-      .sort({ createdAt: -1 });
+      .limit(limit)
+      .populate('company'); // 회사 정보 포함
 
     res.json({
       status: 'success',
       data: jobs,
       pagination: {
-        currentPage: Number(page),
+        currentPage,
         totalPages,
         totalItems,
       },
@@ -55,43 +59,37 @@ exports.getJobs = async (req, res, next) => {
   }
 };
 
-// 공고 상세 조회 및 조회수 증가
-exports.getJobById = async (req, res, next) => {
-  try {
-    const jobId = req.params.id;
-    const job = await Job.findById(jobId);
-
-    if (!job) {
-      throw new CustomError(404, '채용 공고를 찾을 수 없습니다.');
-    }
-
-    // 조회수 증가
-    job.views = (job.views || 0) + 1;
-    await job.save();
-
-    // 관련 공고 추천 (예: 같은 sector의 상위 5개 공고)
-    const relatedJobs = await Job.find({
-      sector: job.sector,
-      _id: { $ne: jobId }
-    }).limit(5).sort({ createdAt: -1 });
-
-    res.json({
-      status: 'success',
-      data: {
-        job,
-        relatedJobs
-      }
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
 // 채용 공고 등록
 exports.createJob = async (req, res, next) => {
   try {
-    const jobData = req.body;
-    const job = new Job(jobData);
+    const { companyId, title, location, experience, education, employmentType, deadline, sector, salary, skills } = req.body;
+
+    // 회사 존재 여부 확인
+    const company = await Company.findById(companyId);
+    if (!company) {
+      throw new CustomError(404, '회사를 찾을 수 없습니다.');
+    }
+
+    // 중복 공고 확인
+    const existingJob = await Job.findOne({ link: req.body.link });
+    if (existingJob) {
+      throw new CustomError(400, '이미 존재하는 채용 공고입니다.');
+    }
+
+    const job = new Job({
+      company: company._id,
+      title,
+      link: req.body.link,
+      location,
+      experience,
+      education,
+      employmentType,
+      deadline,
+      sector,
+      salary,
+      skills
+    });
+
     await job.save();
 
     res.status(201).json({ status: 'success', data: job });
@@ -104,13 +102,32 @@ exports.createJob = async (req, res, next) => {
 exports.updateJob = async (req, res, next) => {
   try {
     const jobId = req.params.id;
-    const updateData = req.body;
+    const updates = req.body;
 
-    const job = await Job.findByIdAndUpdate(jobId, updateData, { new: true });
-
+    // 채용 공고 존재 여부 확인
+    const job = await Job.findById(jobId);
     if (!job) {
       throw new CustomError(404, '채용 공고를 찾을 수 없습니다.');
     }
+
+    // 회사 수정 시 회사 존재 여부 확인
+    if (updates.companyId) {
+      const company = await Company.findById(updates.companyId);
+      if (!company) {
+        throw new CustomError(404, '회사를 찾을 수 없습니다.');
+      }
+      updates.company = updates.companyId;
+      delete updates.companyId;
+    }
+
+    // 업데이트 적용
+    Object.keys(updates).forEach(key => {
+      job[key] = updates[key];
+    });
+
+    job.updatedAt = Date.now();
+
+    await job.save();
 
     res.json({ status: 'success', data: job });
   } catch (err) {
@@ -122,13 +139,30 @@ exports.updateJob = async (req, res, next) => {
 exports.deleteJob = async (req, res, next) => {
   try {
     const jobId = req.params.id;
-    const job = await Job.findByIdAndDelete(jobId);
 
+    // 채용 공고 존재 여부 확인
+    const job = await Job.findById(jobId);
     if (!job) {
       throw new CustomError(404, '채용 공고를 찾을 수 없습니다.');
     }
 
+    await Job.findByIdAndDelete(jobId);
+
     res.json({ status: 'success', message: '채용 공고가 삭제되었습니다.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 기술 스택별 채용 공고 수 집계
+exports.aggregateSkills = async (req, res, next) => {
+  try {
+    const aggregation = await Job.aggregate([
+      { $unwind: '$skills' },
+      { $group: { _id: '$skills', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    res.json({ status: 'success', data: aggregation });
   } catch (err) {
     next(err);
   }

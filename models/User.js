@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: String,
+  role: { type: String, enum: ['user', 'admin'], default: 'user' }, // 역할 필드 추가
   refreshToken: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
@@ -56,10 +57,27 @@ userSchema.methods.comparePassword = function(candidatePassword) {
   return this.password === encodedCandidate;
 };
 
+// Cascade Delete 구현
+userSchema.pre('findOneAndDelete', async function(next) {
+  const userId = this.getQuery()['_id'];
+  try {
+    await Application.deleteMany({ user: userId });
+    await Bookmark.deleteMany({ user: userId });
+    await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+    await Notification.deleteMany({ user: userId });
+    await Resume.deleteMany({ user: userId });
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // 조회 시 `updatedAt` 업데이트
 userSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+// 인덱스 설정
+userSchema.index({ email: 1 });
 
 module.exports = mongoose.model('User', userSchema);

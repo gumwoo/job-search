@@ -39,7 +39,6 @@ app.use(cors());
 app.use(express.json());
 app.use(helmet());
 app.use(expressStatusMonitor());
-app.use(expressStatusMonitor({ path: '/status' }));
 app.use('/messages', messageRoutes);
 app.use(limiter);
 app.use('/resumes', resumeRoutes);

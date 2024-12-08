@@ -39,7 +39,7 @@ const notificationSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  type: { // 예: 'application', 'bookmark', 'message', etc.
+  type: { 
     type: String,
     required: true
   },
@@ -54,5 +54,6 @@ notificationSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
-
+// 복합 인덱스 설정
+notificationSchema.index({ user: 1, read: 1, createdAt: -1 });
 module.exports = mongoose.model('Notification', notificationSchema);

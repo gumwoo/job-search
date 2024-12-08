@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { body, param } = require('express-validator');
+const { body, param, query } = require('express-validator');
 const authMiddleware = require('../middlewares/authMiddleware');
 const bookmarkController = require('../controllers/bookmarkController');
-const validate = require('../middlewares/validationMiddleware');
-
+const { validate } = require('../middlewares/validationMiddleware');
 /**
  * @swagger
  * /bookmarks:

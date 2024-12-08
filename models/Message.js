@@ -55,5 +55,6 @@ messageSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
-
+// 복합 인덱스 설정
+messageSchema.index({ sender: 1, receiver: 1 });
 module.exports = mongoose.model('Message', messageSchema);
