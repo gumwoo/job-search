@@ -16,16 +16,18 @@ module.exports = (err, req, res, next) => {
   logger.error(`${err.statusCode || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
   logger.error(err.stack);
 
-  // 에러 응답 포맷
-  const statusCode = err.statusCode || 500;
-  const message = err.message || '서버 에러가 발생했습니다.';
-  const errors = err.errors || [];
+   // 에러 응답 포맷
+   const statusCode = err.statusCode || 500;
+   const message = err.message || '서버 에러가 발생했습니다.';
+   const errorCode = err.errorCode || 'SERVER_ERROR';
+   const errors = err.errors || [];
 
   // 운영적 에러인지 확인
   if (err.isOperational) {
     res.status(statusCode).json({
-      status: statusCode >= 400 && statusCode < 500 ? 'error' : 'fail',
+      status: 'error',
       message,
+      code: errorCode,
       errors,
     });
   } else {
@@ -41,6 +43,7 @@ module.exports = (err, req, res, next) => {
       res.status(500).json({
         status: 'error',
         message: '서버 에러가 발생했습니다.',
+        code: 'INTERNAL_SERVER_ERROR'
       });
     }
   }

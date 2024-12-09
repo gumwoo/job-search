@@ -319,7 +319,76 @@ router.put('/:id',
   ]),
   (req, res, next) => jobController.updateJob(req, res, next)
 );
+/**
+ * @swagger
+ * /jobs/{id}:
+ *   get:
+ *     summary: 채용 공고 상세 조회
+ *     tags: [Jobs]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: 채용 공고 ID
+ *         schema:
+ *           type: string
+ *           example: 60d0fe4f5311236168a109cb
+ *     responses:
+ *       200:
+ *         description: 채용 공고 상세 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   $ref: '#/components/schemas/Job'
+ *                 relatedJobs:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Job'
+ *       404:
+ *         description: 채용 공고를 찾을 수 없음
+ */
+router.get('/:id',
+  validate([
+    param('id').isMongoId().withMessage('유효한 채용 공고 ID를 입력하세요.')
+  ]),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const job = await Job.findById(id).populate('company');
 
+      if (!job) {
+        return res.status(404).json({ status: 'error', message: '채용 공고를 찾을 수 없습니다.', code: 'JOB_NOT_FOUND' });
+      }
+
+      // 조회수 증가
+      job.views += 1;
+      await job.save();
+
+      // 관련 공고 추천 (예: 동일한 직무 분야 또는 기술 스택을 가진 공고)
+      const relatedJobs = await Job.find({
+        _id: { $ne: id },
+        $or: [
+          { sector: job.sector },
+          { skills: { $in: job.skills } }
+        ]
+      }).limit(5).populate('company');
+
+      res.json({
+        status: 'success',
+        data: job,
+        relatedJobs
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 /**
  * @swagger
  * /jobs/{id}:

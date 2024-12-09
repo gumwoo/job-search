@@ -45,7 +45,26 @@ class AuthController {
       next(err);
     }
   }
-
+  /**
+   * 로그인 시도 기록
+   * @param {string} userId - 사용자 ID
+   * @param {boolean} success - 로그인 성공 여부
+   * @param {string} ipAddress - 사용자 IP 주소
+   */
+  async logLoginAttempt(userId, success, ipAddress) {
+    try {
+      const LoginHistory = require('../models/LoginHistory');
+      const log = new LoginHistory({
+        user: userId,
+        success,
+        ipAddress,
+      });
+      await log.save();
+    } catch (err) {
+      // 로깅 실패 시 무시하거나 별도의 처리
+      console.error('로그인 이력 저장 오류:', err);
+    }
+  }
   /**
    * 로그인을 처리합니다.
    * @param {Request} req - Express 요청 객체
@@ -57,16 +76,18 @@ class AuthController {
   async login(req, res, next) {
     try {
       const { email, password } = req.body;
-
+      const ipAddress = req.ip; // 사용자 IP 주소 가져오기
       // 사용자 확인
       const user = await this.User.findOne({ email });
       if (!user) {
+        await this.logLoginAttempt(null, false, ipAddress);
         throw new this.CustomError(400, '존재하지 않는 이메일입니다.');
       }
 
       // 비밀번호 검증
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
+        await this.logLoginAttempt(user._id, false, ipAddress);
         throw new this.CustomError(400, '비밀번호가 일치하지 않습니다.');
       }
 
@@ -77,6 +98,9 @@ class AuthController {
       // Refresh Token 저장
       user.refreshToken = refreshToken;
       await user.save();
+
+      // 로그인 성공 이력 저장
+      await this.logLoginAttempt(user._id, true, ipAddress);
 
       res.json({
         status: 'success',

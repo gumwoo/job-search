@@ -66,10 +66,13 @@ class BookmarkController {
       if (salary) query.salary = salary;
       if (skills) query.skills = { $all: skills.split(',').map(skill => skill.trim()) };
       if (keyword) {
-        query.$or = [
-          { title: { $regex: keyword, $options: 'i' } },
-          { 'company.name': { $regex: keyword, $options: 'i' } }
-        ];
+        query['job.title'] = { $regex: keyword, $options: 'i' };
+      }
+      if (companyName) {
+        query['job.company.name'] = { $regex: companyName, $options: 'i' };
+      }
+      if (position) {
+        query['job.title'] = { $regex: position, $options: 'i' };
       }
 
       const totalItems = await this.Bookmark.countDocuments(query);
@@ -77,7 +80,11 @@ class BookmarkController {
       const currentPage = parseInt(page, 10);
       // 북마크 목록 조회
       const bookmarks = await this.Bookmark.find(query)
-        .populate('job')
+        .populate({
+          path: 'job',
+          populate: { path: 'company' }
+        })
+        .sort({ bookmarkedAt: -1 }) // 최신순
         .skip(skip)
         .limit(limit);
 
