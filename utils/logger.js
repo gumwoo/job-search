@@ -33,15 +33,17 @@ winston.addColors(customLevels.colors);
 const logFormat = printf(({ level, message, timestamp, stack }) => {
   return `${timestamp} [${level}]: ${stack || message}`;
 });
-
-// Create logger with custom levels
+/**
+ * Winston 로거 설정
+ * @type {winston.Logger}
+ */
 const logger = winston.createLogger({
   levels: customLevels.levels,
   level: process.env.LOG_LEVEL || 'info',
   format: combine(
     colorize(),
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    errors({ stack: true }), // to log stack trace
+    errors({ stack: true }), // 스택 트레이스 포함
     logFormat
   ),
   transports: [

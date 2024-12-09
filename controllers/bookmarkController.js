@@ -26,14 +26,15 @@ class BookmarkController {
     try {
       const { jobId } = req.body;
       const userId = req.user._id;
-
+      // 기존 북마크 존재 여부 확인
       const bookmark = await this.Bookmark.findOne({ user: userId, job: jobId });
 
       if (bookmark) {
+        // 북마크가 이미 존재하면 제거
         await this.Bookmark.deleteOne({ _id: bookmark._id });
         return res.status(200).json({ status: 'success', message: '북마크가 제거되었습니다.' });
       }
-
+      // 북마크가 없으면 추가
       const newBookmark = new this.Bookmark({ user: userId, job: jobId });
       await newBookmark.save();
       return res.status(201).json({ status: 'success', message: '북마크가 추가되었습니다.' });
@@ -74,7 +75,7 @@ class BookmarkController {
       const totalItems = await this.Bookmark.countDocuments(query);
       const totalPages = Math.ceil(totalItems / limit);
       const currentPage = parseInt(page, 10);
-
+      // 북마크 목록 조회
       const bookmarks = await this.Bookmark.find(query)
         .populate('job')
         .skip(skip)
@@ -106,12 +107,12 @@ class BookmarkController {
     try {
       const { id } = req.params;
       const userId = req.user._id;
-
+      // 북마크 존재 여부 확인
       const bookmark = await this.Bookmark.findOne({ _id: id, user: userId });
       if (!bookmark) {
         throw new this.CustomError(404, '북마크를 찾을 수 없습니다.');
       }
-
+      // 북마크 제거
       await this.Bookmark.deleteOne({ _id: id });
       res.json({ status: 'success', message: '북마크가 삭제되었습니다.' });
     } catch (err) {

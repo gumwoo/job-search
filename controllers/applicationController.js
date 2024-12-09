@@ -88,14 +88,14 @@ class ApplicationController {
       const totalItems = await this.Application.countDocuments(query);
       const totalPages = Math.ceil(totalItems / limit);
       const currentPage = parseInt(page, 10);
-
+      // 정렬 기준 설정
       let sortCriteria = { appliedAt: -1 }; // 기본 정렬: 최신순
       if (sortBy === 'date') {
         sortCriteria = { appliedAt: -1 };
       } else if (sortBy === 'status') {
         sortCriteria = { status: 1 };
       }
-
+      // 지원 내역 조회
       const applications = await this.Application.find(query)
         .populate('job')
         .populate('resume') // 이력서 정보 추가
@@ -137,7 +137,7 @@ class ApplicationController {
       if (application.status !== 'Pending') {
         throw new this.CustomError(400, '취소할 수 없는 지원 상태입니다.');
       }
-
+      // 지원 상태를 'Cancelled'로 변경
       application.status = 'Cancelled';
       await application.save();
 

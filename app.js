@@ -55,7 +55,6 @@ app.use('/jobs', jobRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/bookmarks', bookmarkRoutes);
 // Swagger UI 설정
-// 필요 시 옵션 추가
 app.use(
   '/api-docs',
   swaggerUi.serve,

@@ -182,4 +182,5 @@ router.delete('/:id',
   ]),
   (req, res, next) => applicationController.cancelApplication(req, res, next)
 );
+
 module.exports = router;

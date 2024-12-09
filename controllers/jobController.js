@@ -111,7 +111,7 @@ class JobController {
       if (existingJob) {
         throw new this.CustomError(400, '이미 존재하는 채용 공고입니다.');
       }
-
+      // 새로운 채용 공고 생성
       const job = new this.Job({
         company: company._id,
         title,
@@ -181,12 +181,12 @@ class JobController {
   async deleteJob(req, res, next) {
     try {
       const { id } = req.params;
-
+      // 채용 공고 존재 여부 확인
       const job = await this.Job.findById(id);
       if (!job) {
         throw new this.CustomError(404, '채용 공고를 찾을 수 없습니다.');
       }
-
+      // 채용 공고 삭제
       await this.Job.deleteOne({ _id: id });
 
       res.json({ status: 'success', message: '채용 공고가 삭제되었습니다.' });
@@ -205,6 +205,7 @@ class JobController {
    */
   async aggregateSkills(req, res, next) {
     try {
+       // 기술 스택별 채용 공고 수 집계
       const aggregation = await this.Job.aggregate([
         { $unwind: '$skills' },
         { $group: { _id: '$skills', count: { $sum: 1 } } },

@@ -36,7 +36,7 @@ class AuthController {
       if (existingUser) {
         throw new this.CustomError(400, '이미 존재하는 이메일입니다.');
       }
-
+       // 새로운 사용자 생성
       const user = new this.User({ email, password, name });
       await user.save();
 
@@ -97,6 +97,7 @@ class AuthController {
    */
   async logout(req, res, next) {
     try {
+      // 사용자에게 저장된 Refresh Token 제거
       req.user.refreshToken = null;
       await req.user.save();
 
@@ -132,7 +133,7 @@ class AuthController {
   async updateProfile(req, res, next) {
     try {
       const { name, password } = req.body;
-
+      // 이름과 비밀번호 업데이트 (선택 사항)
       if (name) req.user.name = name;
       if (password) req.user.password = password;
 
@@ -153,6 +154,7 @@ class AuthController {
    */
   async deleteAccount(req, res, next) {
     try {
+      // 사용자 계정 삭제 (Cascade Delete는 User 모델에서 처리)
       await this.User.findByIdAndDelete(req.user._id);
       res.json({ status: 'success', message: '회원 탈퇴가 완료되었습니다.' });
     } catch (err) {

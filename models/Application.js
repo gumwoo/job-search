@@ -67,7 +67,7 @@ applicationSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
-// 복합 인덱스 설정
+// 복합 인덱스 설정 (사용자와 채용 공고의 중복 방지)
 applicationSchema.index({ user: 1, job: 1 });
 
 module.exports = mongoose.model('Application', applicationSchema);

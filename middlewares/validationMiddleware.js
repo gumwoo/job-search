@@ -3,6 +3,12 @@
 const { validationResult } = require('express-validator');
 const CustomError = require('../utils/customError');
 
+/**
+ * 유효성 검사 미들웨어
+ * Express Validator의 유효성 검사 결과를 처리합니다.
+ * @param {Array} validations - 유효성 검사 체인 배열
+ * @returns {Function} - 미들웨어 함수
+ */
 const validate = (validations) => {
   return async (req, res, next) => {
     // 모든 유효성 검사를 실행

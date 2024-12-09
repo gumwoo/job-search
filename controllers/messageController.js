@@ -34,7 +34,7 @@ class MessageController {
       if (!receiver) {
         throw new this.CustomError(404, '수신자를 찾을 수 없습니다.');
       }
-
+      // 메시지 생성
       const message = new this.Message({
         sender: senderId,
         receiver: receiverId,
@@ -69,7 +69,7 @@ class MessageController {
       if (!conversationUser) {
         throw new this.CustomError(404, '대화 상대방을 찾을 수 없습니다.');
       }
-
+      // 대화 상대와의 메시지 조회
       const query = {
         $or: [
           { sender: userId, receiver: conversationWith },
@@ -80,7 +80,7 @@ class MessageController {
       const totalItems = await this.Message.countDocuments(query);
       const totalPages = Math.ceil(totalItems / limit);
       const currentPage = parseInt(page, 10);
-
+      // 메시지 목록 조회
       const messages = await this.Message.find(query)
         .sort({ sentAt: -1 })
         .skip(skip)
@@ -112,7 +112,7 @@ class MessageController {
     try {
       const { id } = req.params;
       const userId = req.user._id;
-
+      // 메시지 존재 여부 확인
       const message = await this.Message.findOne({ _id: id, $or: [{ sender: userId }, { receiver: userId }] });
       if (!message) {
         throw new this.CustomError(404, '메시지를 찾을 수 없습니다.');
@@ -136,12 +136,12 @@ class MessageController {
     try {
       const { id } = req.params;
       const userId = req.user._id;
-
+      // 수신자인 메시지 확인
       const message = await this.Message.findOne({ _id: id, receiver: userId });
       if (!message) {
         throw new this.CustomError(404, '메시지를 찾을 수 없습니다.');
       }
-
+      // 메시지 읽음 상태 업데이트
       message.read = true;
       await message.save();
 
