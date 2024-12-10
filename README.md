@@ -9,46 +9,56 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 ## 주요 기능 요약
 
 ### 1. 크롤링 (Crawling)
-- **기능**: Saramin 웹사이트에서 axios와 cheerio를 이용해 채용 공고 데이터(회사명, 공고 제목, 지역, 경력, 기술스택 등) 수집
-
+- Saramin 웹사이트 크롤링
+- axios + cheerio 활용
+- 최소 100개 이상 공고 수집, 중복 데이터 무시, 재시도 로직 포함
 ### 2. 데이터베이스 (MongoDB)
-- **기능**: 수집한 데이터를 MongoDB에 저장 (NoSQL)
+- Mongoose ODM 사용
+- 회사(Company), 채용 공고(Job), 사용자(User), 지원(Application), 북마크(Bookmark), 이력서(Resume), 메시지(Message), 알림(Notification), 로그인 이력(LoginHistory) 등 총 8개 이상 컬렉션
+- 인덱스 및 관계 설정을 통한 효율적인 조회
+
 
 ### 3. REST API 개발
 - **회원 관련 기능**:
   - 회원 가입/로그인/토큰 갱신/회원 정보 수정/탈퇴
 - **채용 공고**:
-  - CRUD, 검색, 필터링(지역, 경력, 급여, 기술스택), 페이지네이션
+  -  CRUD, 검색(키워드/회사명/분야), 필터링(지역/경력/급여/스킬), 정렬, 페이지네이션(20개 단위)
 - **지원**:
   - 지원하기, 지원 취소, 지원 내역 조회
 - **북마크 (관심공고)**:
   - 추가/제거, 목록 조회
 - **기타 기능**:
-  - 메시지 전송/조회, 알림 조회/읽음 처리, 이력서 CRUD
+  - 이력서 업로드/조회/수정/삭제(Resumes), 메시지 전송/조회(Messages), 알림 조회/읽음 처리(Notifications)
 
 ### 4. 인증 및 보안
 - **JWT 기반 인증**: Access Token, Refresh Token
 - **보안**: 
   - 비밀번호 Base64 암호화
   - helmet, express-rate-limit 사용
+  - adminMiddleware로 관리자 권한 검증
 
 ### 5. Swagger 문서화
 - **경로**: `/api-docs`
 - **기능**: Swagger UI로 API 동작 확인 및 테스트 가능
-
+- 요청/응답 스키마 정의
 ### 6. 에러 처리 및 로깅
-- **기능**: 글로벌 에러 핸들러, winston 로깅, 일관된 에러 응답 포맷
+- 글로벌 에러 핸들러, 커스텀 에러 클래스
+- winston + morgan을 통한 요청/에러 로깅
+- 일관된 에러 응답 포맷
+- express-status-monitor로 서버 상태 모니터링
 
 ---
 
 ## 기술 스택
 
 - **Backend**: Node.js (Express.js)
-- **Database**: MongoDB
+- **Database**: MongoDB (Mongoose)
 - **Authentication**: JWT (Access Token, Refresh Token)
 - **Documentation**: Swagger (swagger-ui-express, swagger-jsdoc)
 - **Crawling**: axios, cheerio
 - **Security & Logging**: helmet, express-rate-limit, winston
+- **Logging** : morgan, winston
+- **Validation**: express-validator
 
 ---
 
@@ -84,10 +94,14 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 - `swagger-ui-express`: Swagger UI 제공
 - `winston`: 로깅 라이브러리
 
+### 1. **Dependencies설치 명령어 제시**
+- npm install axios@^1.7.8 axios-retry@^4.5.0 bcryptjs@^2.4.3 cheerio@^1.0.0 cors@^2.8.5 dotenv@^16.4.7 express@^4.21.1 express-rate-limit@^7.4.1 express-status-monitor@^1.3.4 express-validator@^7.2.0 helmet@^8.0.0 jsonwebtoken@^9.0.2 mongoose@^8.8.3 morgan@^1.10.0 multer@^1.4.5-lts.1 swagger-jsdoc@^6.2.8 swagger-ui-express@^5.0.1 winston@^3.17.0 winston-daily-rotate-file@^5.0.0
+
 ### 2. **DevDependencies**
 - `eslint`: 코드 스타일 검사 도구
 - `nodemon`: 서버 코드 변경 시 자동 재시작
-
+### 2. **Dependencies설치 명령어 제시**
+- npm install --save-dev eslint@^9.16.0 nodemon@^3.1.7
 ---
 
 ## JCloud 환경 정보
@@ -108,7 +122,6 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 JOB-SEARCH
 ├── app.js               # Express 서버 시작점
 ├── Dockerfile           # Docker 설정 파일
-├── swagger.json         # Swagger 문서화 파일
 ├── package.json         # 프로젝트 종속성 파일
 ├── .gitignore           # Git 예외 설정
 ├── .env                 # 환경 변수 파일
