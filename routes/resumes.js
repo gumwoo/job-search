@@ -10,7 +10,7 @@ const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 const multer = require('multer');
 const path = require('path');
-
+const resumeController = new ResumeController(Resume, CustomError);
 // Multer 설정 for 이력서 업로드
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
