@@ -81,10 +81,6 @@ class BookmarkController {
       if (keyword) {
         query['job.title'] = { $regex: keyword, $options: 'i' };
       }
-      
-      if (position) {
-        query['job.position'] = { $regex: position, $options: 'i' };
-      }
 
       const totalItems = await this.Bookmark.countDocuments(query);
       const totalPages = Math.ceil(totalItems / limit);

@@ -62,11 +62,6 @@ const jobController = new JobController(Job, Company, CustomError);
  *           type: string
  *         description: 회사명 필터링
  *       - in: query
- *         name: position
- *         schema:
- *           type: string
- *         description: 포지션 필터링
- *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
@@ -116,7 +111,6 @@ router.get('/',
     query('skills').optional().isString(),
     query('keyword').optional().isString(),
     query('companyName').optional().isString(), // 추가
-    query('position').optional().isString(), // 포지션 검색 추가 예정
   ]),
   (req, res, next) => jobController.getJobs(req, res, next)
 );

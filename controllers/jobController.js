@@ -26,7 +26,7 @@ class JobController {
    */
   async getJobs(req, res, next) {
     try {
-      const { page = 1, sortBy = 'createdAt', order = 'desc', location, experience, salary, skills, keyword, companyName, position } = req.query;
+      const { page = 1, sortBy = 'createdAt', order = 'desc', location, experience, salary, skills, keyword, companyName } = req.query;
       const limit = 20;
       const skip = (page - 1) * limit;
   
@@ -46,11 +46,7 @@ class JobController {
         const companyIds = companies.map(company => company._id);
         matchStage.company = { $in: companyIds };
       }
-  
-      // 포지션 검색 필터링
-      if (position) {
-        matchStage.position = { $regex: position, $options: 'i' };
-      }
+
   
       // 기타 필터링 조건 추가
       if (location) {

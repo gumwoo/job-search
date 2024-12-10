@@ -1,9 +1,11 @@
 // crawler/saraminCrawler.js
+
 // 기술 스택 추출 알고리즘:
 // 1. job_sector 내의 a 태그 목록을 순회
 // 2. 각 a 태그의 텍스트를 trim하여 skills 배열에 삽입
 // 3. 결과적으로 skills 배열에는 해당 공고에서 요구하는 모든 기술 스택이 문자열 형태로 저장됨
 // 이 알고리즘은 단순한 DOM 탐색이며, 공고별 기술 스택이 a 태그로 감싸여 있다는 구조적 전제에 의존함
+
 require('dotenv').config({});
 const axios = require('axios');
 const cheerio = require('cheerio');
@@ -25,9 +27,14 @@ axiosRetry(axios, {
 });
 
 // MongoDB 연결
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))
   .catch(err => console.log(err));
+
+// delay 함수 정의
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function crawlSaramin(keyword, pages = 1) {
   const headers = {
@@ -62,7 +69,7 @@ async function crawlSaramin(keyword, pages = 1) {
 
           const salaryBadge = job.find('.area_badge .badge');
           const salary = salaryBadge.text().trim();
-          const position = job.find('.job_position').text().trim();
+
           // 기술 스택 추출 (가능한 경우)
           const skills = [];
           job.find('.job_sector a').each((idx, elem) => {
@@ -94,7 +101,6 @@ async function crawlSaramin(keyword, pages = 1) {
               employmentType,
               deadline,
               sector,
-              position,
               salary,
               skills
             });
@@ -112,7 +118,7 @@ async function crawlSaramin(keyword, pages = 1) {
       }
 
       console.log(`${page}페이지 크롤링 완료`);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 서버 부하 방지를 위한 딜레이
+      await delay(Math.random() * 3000 + 2000); // 2~5초 지연
 
     } catch (err) {
       console.error(`페이지 요청 중 에러 발생: ${err}`);
