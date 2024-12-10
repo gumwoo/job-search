@@ -54,16 +54,18 @@ app.use('/auth', authRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/applications', applicationRoutes);
 app.use('/bookmarks', bookmarkRoutes);
-// Swagger UI 설정
-app.use(
-  '/api-docs',
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpecs, {
-    swaggerOptions: {
-      validatorUrl: null, // Validator를 비활성화하여 HTTPS 관련 이슈 방지
-    },
-  })
-);
+// Swagger UI 설정 (환경별)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpecs, {
+      swaggerOptions: {
+        validatorUrl: null, // Validator를 비활성화하여 HTTPS 관련 이슈 방지
+      },
+    })
+  );
+}
 // morgan과 winston을 연동하여 요청 로깅
 app.use(morgan('combined', {
   stream: {

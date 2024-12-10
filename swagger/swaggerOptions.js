@@ -133,6 +133,24 @@ const options = {
           updatedAt: { type: 'string', format: 'date-time', example: '2023-10-01T12:34:56.789Z' },
         },
       },
+      JobDetailResponse: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            example: 'success'
+          },
+          data: {
+            $ref: '#/components/schemas/Job'
+          },
+          relatedJobs: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/Job'
+            }
+          }
+        }
+      },
       // 추가적인 에러 응답 스키마
       ErrorResponse: {
         type: 'object',
@@ -160,7 +178,7 @@ const options = {
     },
   ],
 },
-apis: ['./routes/*.js', './models/*.js'], // Swagger 주석이 포함된 파일 경로
+apis: ['./routes/*.js', './models/*.js', './controllers/*.js'], // Swagger 주석이 포함된 파일 경로
 };
 
 const swaggerSpecs = swaggerJSDoc(options);

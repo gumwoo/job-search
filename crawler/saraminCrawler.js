@@ -62,7 +62,7 @@ async function crawlSaramin(keyword, pages = 1) {
 
           const salaryBadge = job.find('.area_badge .badge');
           const salary = salaryBadge.text().trim();
-          
+          const position = job.find('.job_position').text().trim();
           // 기술 스택 추출 (가능한 경우)
           const skills = [];
           job.find('.job_sector a').each((idx, elem) => {
@@ -94,6 +94,7 @@ async function crawlSaramin(keyword, pages = 1) {
               employmentType,
               deadline,
               sector,
+              position,
               salary,
               skills
             });

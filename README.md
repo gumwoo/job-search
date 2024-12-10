@@ -52,6 +52,17 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 
 ---
 
+## 환경 변수 설정
+  - `.env` 파일을 생성하고 다음과 같이 설정합니다:
+        ```dotenv
+        NODE_ENV=development
+        JWT_SECRET=your_jwt_secret_key
+        LOG_LEVEL=info
+        MONGO_URI=your_mongodb_connection_string
+        PORT=443
+        ```
+
+
 ## 설치된 주요 패키지
 
 ### 1. **Dependencies**

@@ -1,7 +1,7 @@
 // controllers/AuthController.js
 
 const jwt = require('jsonwebtoken');
-
+const LoginHistory = require('../models/LoginHistory');
 /**
  * AuthController 클래스는 인증 관련 모든 비즈니스 로직을 처리합니다.
  */
@@ -46,18 +46,19 @@ class AuthController {
     }
   }
   /**
-   * 로그인 시도 기록
-   * @param {string} userId - 사용자 ID
+   * 로그인 시도 기록을 저장합니다.
+   * @param {string|null} userId - 사용자 ID (로그인 실패 시 null)
    * @param {boolean} success - 로그인 성공 여부
    * @param {string} ipAddress - 사용자 IP 주소
+   * @param {string} userAgent - 사용자 에이전트
    */
-  async logLoginAttempt(userId, success, ipAddress) {
+  async logLoginAttempt(userId, success, ipAddress, userAgent) {
     try {
-      const LoginHistory = require('../models/LoginHistory');
       const log = new LoginHistory({
         user: userId,
         success,
         ipAddress,
+        userAgent,
       });
       await log.save();
     } catch (err) {
@@ -77,17 +78,23 @@ class AuthController {
     try {
       const { email, password } = req.body;
       const ipAddress = req.ip; // 사용자 IP 주소 가져오기
-      // 사용자 확인
-      const user = await this.User.findOne({ email });
-      if (!user) {
-        await this.logLoginAttempt(null, false, ipAddress);
-        throw new this.CustomError(400, '존재하지 않는 이메일입니다.');
-      }
+      const userAgent = req.headers['user-agent']; // 사용자 에이전트 가져오기
+       // 사용자 확인
+       const user = await this.User.findOne({ email });
+       if (!user) {
+         await this.logLoginAttempt(null, false, ipAddress, userAgent);
+         throw new this.CustomError(400, '존재하지 않는 이메일입니다.');
+       }
 
       // 비밀번호 검증
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
-        await this.logLoginAttempt(user._id, false, ipAddress);
+        await LoginHistory.create({
+          user: user._id,
+          success: false,
+          ipAddress: ipAddress,
+          userAgent: req.headers['user-agent'],
+        });
         throw new this.CustomError(400, '비밀번호가 일치하지 않습니다.');
       }
 
@@ -99,8 +106,13 @@ class AuthController {
       user.refreshToken = refreshToken;
       await user.save();
 
-      // 로그인 성공 이력 저장
-      await this.logLoginAttempt(user._id, true, ipAddress);
+       // 로그인 성공 이력 저장
+       await LoginHistory.create({
+        user: user._id,
+        success: true,
+        ipAddress: ipAddress,
+        userAgent: req.headers['user-agent'],
+      });
 
       res.json({
         status: 'success',

@@ -7,10 +7,14 @@ class BookmarkController {
   /**
    * BookmarkController 생성자
    * @param {Model} bookmarkModel - Bookmark Mongoose 모델
+   * @param {Model} companyModel - Company Mongoose 모델
+   * @param {Model} jobModel - Job Mongoose 모델
    * @param {CustomError} customError - 커스텀 에러 클래스
    */
-  constructor(bookmarkModel, customError) {
+  constructor(bookmarkModel, companyModel, jobModel, customError) {
     this.Bookmark = bookmarkModel;
+    this.Company = companyModel;
+    this.Job = jobModel;
     this.CustomError = customError;
   }
 
@@ -65,14 +69,21 @@ class BookmarkController {
       if (experience) query.experience = experience;
       if (salary) query.salary = salary;
       if (skills) query.skills = { $all: skills.split(',').map(skill => skill.trim()) };
+      if (companyName) {
+        const companies = await this.Company.find({ name: { $regex: companyName, $options: 'i' } }).select('_id');
+        const companyIds = companies.map(company => company._id);
+        // 먼저 해당 회사에 속한 Job IDs를 찾습니다.
+        const jobs = await this.Job.find({ company: { $in: companyIds } }).select('_id');
+        const jobIds = jobs.map(job => job._id);
+        query.job = { $in: jobIds };
+      }
+      
       if (keyword) {
         query['job.title'] = { $regex: keyword, $options: 'i' };
       }
-      if (companyName) {
-        query['job.company.name'] = { $regex: companyName, $options: 'i' };
-      }
+      
       if (position) {
-        query['job.title'] = { $regex: position, $options: 'i' };
+        query['job.position'] = { $regex: position, $options: 'i' };
       }
 
       const totalItems = await this.Bookmark.countDocuments(query);

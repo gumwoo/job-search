@@ -26,54 +26,64 @@ class JobController {
    */
   async getJobs(req, res, next) {
     try {
-      const { page = 1, sortBy, order, location, experience, salary, skills, keyword } = req.query;
+      const { page = 1, sortBy = 'createdAt', order = 'desc', location, experience, salary, skills, keyword, companyName, position } = req.query;
       const limit = 20;
       const skip = (page - 1) * limit;
-
-      const query = {};
-
-      // 키워드 검색 (제목 또는 회사명)
+  
+      const matchStage = {};
+  
+      // 키워드 검색 (제목, 회사명, sector)
       if (keyword) {
-        query.$or = [
+        matchStage.$or = [
           { title: { $regex: keyword, $options: 'i' } },
-          { 'company.name': { $regex: keyword, $options: 'i' } }
+          { sector: { $regex: keyword, $options: 'i' } },
         ];
       }
-
-      // 필터링 조건 추가
+  
+      // 회사명 검색 필터링
+      if (companyName) {
+        const companies = await this.Company.find({ name: { $regex: companyName, $options: 'i' } }).select('_id');
+        const companyIds = companies.map(company => company._id);
+        matchStage.company = { $in: companyIds };
+      }
+  
+      // 포지션 검색 필터링
+      if (position) {
+        matchStage.position = { $regex: position, $options: 'i' };
+      }
+  
+      // 기타 필터링 조건 추가
       if (location) {
-        query.location = location;
+        matchStage.location = location;
       }
       if (experience) {
-        query.experience = experience;
+        matchStage.experience = experience;
       }
       if (salary) {
-        query.salary = salary;
+        matchStage.salary = salary;
       }
       if (skills) {
-        query.skills = { $all: skills.split(',').map(skill => skill.trim()) };
+        matchStage.skills = { $in: skills.split(',').map(skill => skill.trim()) };
       }
-
-      // 총 아이템 수와 페이지 계산
-      const totalItems = await this.Job.countDocuments(query);
+  
+      // Aggregation Pipeline 구성
+      const aggregationPipeline = [
+        { $match: matchStage },
+        { $sort: { [sortBy]: order === 'desc' ? -1 : 1 } },
+        { $skip: skip },
+        { $limit: limit },
+        { $lookup: { from: 'companies', localField: 'company', foreignField: '_id', as: 'companyDetails' } },
+        { $unwind: '$companyDetails' },
+      ];
+  
+      // 총 아이템 수 계산
+      const totalItems = await this.Job.countDocuments(matchStage);
       const totalPages = Math.ceil(totalItems / limit);
       const currentPage = parseInt(page, 10);
-
-      // 정렬 기준 설정
-      let sortCriteria = {};
-      if (sortBy) {
-        sortCriteria[sortBy] = order === 'desc' ? -1 : 1;
-      } else {
-        sortCriteria = { createdAt: -1 };
-      }
-
+  
       // 채용 공고 조회
-      const jobs = await this.Job.find(query)
-        .sort(sortCriteria)
-        .skip(skip)
-        .limit(limit)
-        .populate('company'); // 회사 정보 포함
-
+      const jobs = await this.Job.aggregate(aggregationPipeline);
+  
       res.json({
         status: 'success',
         data: jobs,
@@ -87,6 +97,7 @@ class JobController {
       next(err);
     }
   }
+  
 
   /**
    * 새로운 채용 공고를 생성합니다.

@@ -8,9 +8,10 @@
  *       properties:
  *         _id:
  *           type: string
+ *           description: 채용 공고 ID
  *         company:
  *           type: string
- *           description: 회사명
+ *           description: 회사 ID
  *         title:
  *           type: string
  *           description: 채용 공고 제목
@@ -35,6 +36,9 @@
  *         sector:
  *           type: string
  *           description: 직무 분야
+ *         position:
+ *           type: string
+ *           description: 포지션
  *         salary:
  *           type: string
  *           description: 연봉 정보
@@ -43,12 +47,18 @@
  *           items:
  *             type: string
  *           description: 기술 스택
+ *         views:
+ *           type: number
+ *           description: 조회수
+ *           example: 0
  *         createdAt:
  *           type: string
  *           format: date-time
+ *           description: 생성일
  *         updatedAt:
  *           type: string
  *           format: date-time
+ *           description: 수정일
  */
 const mongoose = require('mongoose');
 
@@ -62,6 +72,7 @@ const jobSchema = new mongoose.Schema({
   employmentType: { type: String, required: true },
   deadline: { type: String, required: true },
   sector: { type: String, required: true },
+  position: { type: String, required: true }, // 포지션 필드 추가
   salary: { type: String, required: true },
   skills: { type: [String], required: true },
   views: { type: Number, default: 0 }, // 조회수 필드 추가
@@ -77,5 +88,5 @@ jobSchema.pre('save', function(next) {
 //skills 필드에 텍스트 인덱스를 추가
 jobSchema.index({ skills: 'text' });
 // 복합 인덱스 설정 (자주 사용하는 필드 조합)
-jobSchema.index({ location: 1, experience: 1, salary: 1, sector: 1 });
+jobSchema.index({ location: 1, experience: 1, salary: 1, sector: 1, position: 1 });
 module.exports = mongoose.model('Job', jobSchema);

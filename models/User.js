@@ -8,6 +8,7 @@
  *       required:
  *         - email
  *         - password
+ *         - name
  *       properties:
  *         _id:
  *           type: string
@@ -17,16 +18,25 @@
  *           description: 사용자 이메일 (고유값)
  *         password:
  *           type: string
- *           description: 암호화된 비밀번호
+ *           description: 해싱된 비밀번호
  *         name:
  *           type: string
  *           description: 사용자 이름
+ *         role:
+ *           type: string
+ *           enum: ['user', 'admin']
+ *           description: 사용자 역할
+ *         refreshToken:
+ *           type: string
+ *           description: JWT Refresh Token
  *         createdAt:
  *           type: string
  *           format: date-time
+ *           description: 생성일
  *         updatedAt:
  *           type: string
  *           format: date-time
+ *           description: 수정일
  */
 
 const mongoose = require('mongoose');
@@ -63,8 +73,24 @@ userSchema.methods.comparePassword = function(candidatePassword) {
 };
 
 // Cascade Delete 구현
-userSchema.pre('findOneAndDelete', async function(next) {
-  const userId = this.getQuery()['_id'];
+// pre middleware for deleteOne
+userSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+  const userId = this._id;
+  try {
+    await Application.deleteMany({ user: userId });
+    await Bookmark.deleteMany({ user: userId });
+    await Message.deleteMany({ $or: [{ sender: userId }, { receiver: userId }] });
+    await Notification.deleteMany({ user: userId });
+    await Resume.deleteMany({ user: userId });
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// pre middleware for remove
+userSchema.pre('remove', async function(next) {
+  const userId = this._id;
   try {
     await Application.deleteMany({ user: userId });
     await Bookmark.deleteMany({ user: userId });

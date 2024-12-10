@@ -57,6 +57,16 @@ const jobController = new JobController(Job, Company, CustomError);
  *           type: string
  *         description: 기술 스택 필터링 (쉼표로 구분)
  *       - in: query
+ *         name: companyName
+ *         schema:
+ *           type: string
+ *         description: 회사명 필터링
+ *       - in: query
+ *         name: position
+ *         schema:
+ *           type: string
+ *         description: 포지션 필터링
+ *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
@@ -98,8 +108,15 @@ const jobController = new JobController(Job, Company, CustomError);
 router.get('/',
   validate([
     query('page').optional().isInt({ min: 1 }).withMessage('페이지 번호는 1 이상의 정수여야 합니다.'),
-    query('sortBy').optional().isIn(['createdAt', 'views']).withMessage('유효한 정렬 기준을 선택하세요.'),
-    query('order').optional().isIn(['asc', 'desc']).withMessage('유효한 정렬 순서를 선택하세요.'),
+    query('sortBy').optional().isString(),
+    query('order').optional().isIn(['asc', 'desc']),
+    query('location').optional().isString(),
+    query('experience').optional().isString(),
+    query('salary').optional().isString(),
+    query('skills').optional().isString(),
+    query('keyword').optional().isString(),
+    query('companyName').optional().isString(), // 추가
+    query('position').optional().isString(), // 포지션 검색 추가 예정
   ]),
   (req, res, next) => jobController.getJobs(req, res, next)
 );
@@ -339,19 +356,13 @@ router.put('/:id',
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 data:
- *                   $ref: '#/components/schemas/Job'
- *                 relatedJobs:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Job'
+ *               $ref: '#/components/schemas/JobDetailResponse'
  *       404:
  *         description: 채용 공고를 찾을 수 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/:id',
   validate([
@@ -360,15 +371,15 @@ router.get('/:id',
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const job = await Job.findById(id).populate('company');
+      const job = await Job.findByIdAndUpdate(
+        id,
+        { $inc: { views: 1 } }, // 조회수 1 증가
+        { new: true }           // 업데이트된 문서를 반환
+      ).populate('company');
 
       if (!job) {
         return res.status(404).json({ status: 'error', message: '채용 공고를 찾을 수 없습니다.', code: 'JOB_NOT_FOUND' });
       }
-
-      // 조회수 증가
-      job.views += 1;
-      await job.save();
 
       // 관련 공고 추천 (예: 동일한 직무 분야 또는 기술 스택을 가진 공고)
       const relatedJobs = await Job.find({

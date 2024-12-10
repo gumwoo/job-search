@@ -4,13 +4,15 @@ const express = require('express');
 const router = express.Router();
 const BookmarkController = require('../controllers/bookmarkController');
 const Bookmark = require('../models/Bookmark');
+const Company = require('../models/Company');
+const Job = require('../models/Job');
 const CustomError = require('../utils/customError');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { body, param, query } = require('express-validator');
 const { validate } = require('../middlewares/validationMiddleware');
 
 // BookmarkController 인스턴스 생성 시 의존성 주입
-const bookmarkController = new BookmarkController(Bookmark, CustomError);
+const bookmarkController = new BookmarkController(Bookmark, Company, Job, CustomError);
 /**
  * @swagger
  * tags:
