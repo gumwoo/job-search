@@ -110,18 +110,19 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 ---
 
 ## 환경 변수 설정
-- `.env` 파일을 생성하고 다음과 같이 설정합니다:
-- | 환경 변수                  | 설명                                      | 예시                              |
-- |---------------------------|-------------------------------------------|-----------------------------------|
-- | `NODE_ENV`                | 애플리케이션 실행 환경 (`development`, `production`) | `development`                    |
-- | `JWT_SECRET`              | JWT 토큰 서명에 사용되는 비밀 키              | `your_jwt_secret_key`             |
-- | `ACCESS_TOKEN_EXPIRES_IN` | 액세스 토큰의 만료 시간                     | `1h` (1시간)                      |
-- | `REFRESH_TOKEN_EXPIRES_IN`| 리프레시 토큰의 만료 시간                    | `7d` (7일)                        |
-- | `LOG_LEVEL`               | 로깅 레벨 (`info`, `debug`, `error` 등)      | `info`                            |
-- | `MONGO_URI`               | MongoDB 연결 문자열                        | `mongodb://localhost:27017/jobsearch` |
-- | `PORT`                    | 서버가 리슨할 포트 번호                      | `443`                             |
+```bash
+- .env 파일을 생성하고 다음과 같이 설정합니다:
+| 환경 변수                  | 설명                                      | 예시                              |
+|---------------------------|-------------------------------------------|-----------------------------------|
+| `NODE_ENV`                | 애플리케이션 실행 환경 (`development`, `production`) | `development`                    |
+| `JWT_SECRET`              | JWT 토큰 서명에 사용되는 비밀 키              | `your_jwt_secret_key`             |
+| `ACCESS_TOKEN_EXPIRES_IN` | 액세스 토큰의 만료 시간                     | `1h` (1시간)                      |
+| `REFRESH_TOKEN_EXPIRES_IN`| 리프레시 토큰의 만료 시간                    | `7d` (7일)                        |
+| `LOG_LEVEL`               | 로깅 레벨 (`info`, `debug`, `error` 등)      | `info`                            |
+| `MONGO_URI`               | MongoDB 연결 문자열                        | `mongodb://localhost:27017/jobsearch` |
+| `PORT`                    | 서버가 리슨할 포트 번호                      | `443`                             |
 
-        ```
+```
 
 
 ## 설치된 주요 패키지
