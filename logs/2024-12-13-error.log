@@ -1,0 +1,8 @@
+2024-12-13 17:07:11 [[31merror[39m]: 400 - 존재하지 않는 이메일입니다. - /auth/login - POST - ::ffff:61.99.5.34
+2024-12-13 17:07:11 [[31merror[39m]: Error: 존재하지 않는 이메일입니다.
+    at AuthController.login (/home/ubuntu/job-search/controllers/authController.js:86:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2024-12-13 17:07:14 [[31merror[39m]: 400 - 존재하지 않는 이메일입니다. - /auth/login - POST - ::ffff:61.99.5.34
+2024-12-13 17:07:14 [[31merror[39m]: Error: 존재하지 않는 이메일입니다.
+    at AuthController.login (/home/ubuntu/job-search/controllers/authController.js:86:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)

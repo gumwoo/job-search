@@ -93,10 +93,10 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 - `swagger-jsdoc`: Swagger 문서 생성
 - `swagger-ui-express`: Swagger UI 제공
 - `winston`: 로깅 라이브러리
-
+- `pm2`: Node.js 앱을 데몬 형태로 관리하는 프로세스 매니저
 ### 1. **Dependencies설치 명령어 제시**
 - npm install axios@^1.7.8 axios-retry@^4.5.0 bcryptjs@^2.4.3 cheerio@^1.0.0 cors@^2.8.5 dotenv@^16.4.7 express@^4.21.1 express-rate-limit@^7.4.1 express-status-monitor@^1.3.4 express-validator@^7.2.0 helmet@^8.0.0 jsonwebtoken@^9.0.2 mongoose@^8.8.3 morgan@^1.10.0 multer@^1.4.5-lts.1 swagger-jsdoc@^6.2.8 swagger-ui-express@^5.0.1 winston@^3.17.0 winston-daily-rotate-file@^5.0.0
-
+- sudo npm install -g pm2 (pm2 사용하기)
 ### 2. **DevDependencies**
 - `eslint`: 코드 스타일 검사 도구
 - `nodemon`: 서버 코드 변경 시 자동 재시작
