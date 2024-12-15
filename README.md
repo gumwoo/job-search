@@ -13,10 +13,27 @@ JWT 기반 인증, Swagger를 이용한 API 문서화, 필터링/검색/페이�
 - axios + cheerio 활용
 - 최소 100개 이상 공고 수집, 중복 데이터 무시, 재시도 로직 포함
 ### 2. 데이터베이스 (MongoDB)
-- Mongoose ODM 사용
-- 회사(Company), 채용 공고(Job), 사용자(User), 지원(Application), 북마크(Bookmark), 이력서(Resume), 메시지(Message), 알림(Notification), 로그인 이력(LoginHistory) 등 총 9개 컬렉션
-- 인덱스 및 관계 설정을 통한 효율적인 조회
+- **기능 설명:** 수집된 채용 공고 데이터를 MongoDB에 저장 및 관리합니다.
+- **사용된 기술:** `Mongoose` ODM.
+- **Docker 사용:**
+  - MongoDB는 Docker 컨테이너를 통해 관리됩니다.
+  - Docker Compose를 사용하여 MongoDB 서비스가 자동으로 시작되고 관리됩니다.
+- **컬렉션:**
+  - `Company`, `Job`, `User`, `Application`, `Bookmark`, `Resume`, `Message`, `Notification`, `LoginHistory`
+- **특징:**
+  - 인덱스 설정을 통한 빠른 조회.
+  - 컬렉션 간 관계 설정.
 
+## **Docker 사용 안내**
+
+### **1. Docker의 역할**
+본 프로젝트에서는 **MongoDB**를 Docker 컨테이너로 실행하여 데이터베이스 관리를 효율적으로 수행하고 있습니다. Docker를 사용함으로써 데이터베이스 설정과 관리를 간편하게 할 수 있으며, 다른 개발 환경과의 호환성을 높였습니다.
+### **2. Docker 컨테이너 상태 확인**
+현재 실행 중인 Docker 컨테이너는 다음과 같습니다:
+
+```bash
+sudo docker ps
+```
 
 ### 3. REST API 개발
 - **회원 관련 기능**:
